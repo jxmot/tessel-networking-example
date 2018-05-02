@@ -24,14 +24,14 @@ console.log("I'm blinking! (Press CTRL + C to stop)\n\n\n");
 //////////////////////////////////////////////////////////////////////////////
 // process signal handlers
 //
-// NOTE: When running the `t2 run` command on Windows use CTRL-C to exit. That
-// is caught by `SIGINT`. However CTRL-BREAK is not caught (in Windows).
+// NOTE: When running the `t2 run` command on Windows use CTRL-C to exit which
+// is caught by `SIGINT`. However CTRL-BREAK(SIGBREAK or  is not caught (in Windows).
 process.on('SIGINT', function() {
     console.log('\nCaught interrupt signal\n');
     tesselAPcleanup();
 });
 
-process.on('SIGTERM ', function() {
+process.on('SIGTERM', function() {
     console.log('\nCaught terminate signal\n');
     tesselAPcleanup();
 });

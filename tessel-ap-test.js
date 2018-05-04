@@ -24,26 +24,31 @@ console.log("I'm blinking! (Press CTRL + C to stop)\n\n\n");
 //////////////////////////////////////////////////////////////////////////////
 // process signal handlers
 //
-// NOTE: When running the `t2 run` command on Windows use CTRL-C to exit which
-// is caught by `SIGINT`. However CTRL-BREAK(SIGBREAK or  is not caught (in Windows).
-process.on('SIGINT', function() {
+// NOTE: When running the `t2 run` command on Windows use CTRL-C to exit 
+// which is caught by `SIGINT`. However CTRL-BREAK(SIGBREAK or  is not caught 
+// (in Windows). 
+// 
+// The end result of using CTRL-C to exit the application on the Tessel is that
+// tesselAPcleanup() will be called and the AP will be turned off. As an 
+// indicator both of the user LEDs will be turned off just prior to the 
+// application exit.
+
+process.on('SIGINT', () => {
     console.log('\nCaught interrupt signal\n');
     tesselAPcleanup();
 });
 
-process.on('SIGTERM', function() {
+process.on('SIGTERM', () => {
     console.log('\nCaught terminate signal\n');
     tesselAPcleanup();
 });
 
-process.on('SIGBREAK', function() {
+process.on('SIGBREAK', () => {
     console.log('\nCaught break signal\n');
     tesselAPcleanup();
 });
 
 //////////////////////////////////////////////////////////////////////////////
-// NOTE: Even if this application is stopped the AP will continue
-// to operate and accept connections from stations.
 
 const apconfig = {
         ssid: 'TESSEL_TEST',        // required
@@ -62,12 +67,12 @@ var netIFcount = 0;
 var netIFid = undefined;
 
 // Tessel network event handlers
-tessel.network.wifi.on('error', function() {
+tessel.network.wifi.on('error', () => {
     console.log('ERROR - wifi');
 });
 
 // the AP has been created...
-tessel.network.ap.on('create', function(settings) {
+tessel.network.ap.on('create', (settings) => {
     console.log('SUCCESS - AP created :');
     console.log(JSON.stringify(settings, null, 4));
     console.log('enabling AP now...\n');
@@ -77,16 +82,21 @@ tessel.network.ap.on('create', function(settings) {
 
 // the AP is enabled (but not necessarily really
 // ready to accept connections from stations
-tessel.network.ap.on('enable', function() {
+tessel.network.ap.on('enable', () => {
     console.log('AP enable event\n');
-    getNetIF();
     netIFid = setInterval(getNetIF, 5000);
+    getNetIF();
 });
 
 // exit when the AP has been disabled
-tessel.network.ap.on('disable', function() {
+tessel.network.ap.on('disable', () => {
     console.log('AP disable event\n');
-    process.exit();
+
+    // turn the LEDs OFF as a indicator of success
+    tessel.led[2].off();
+    tessel.led[3].off();
+
+    setTimeout(process.exit, 500);
     // NOTE: Even though we've arrived here because the
     // AP has been disabled, it isn't actually turned off
     // until a measurable amount of time has passed.
@@ -100,7 +110,7 @@ tesselAPinit();
 // disable the wifi client
 function tesselAPinit() {
     // disable the station side of wifi
-    tessel.network.wifi.disable(function(error) {
+    tessel.network.wifi.disable((error) => {
         if(error) console.log('ERROR - wifi.disable\n');
         else {
             // success disabling the wifi station
@@ -115,8 +125,8 @@ function tesselAPinit() {
 // clean up on exit, turn the LEDs off and disable the AP
 function tesselAPcleanup() {
     clearInterval(blinkintrvl);
-    tessel.led[2].off();
-    tessel.led[3].off();
+    //tessel.led[2].off();
+    //tessel.led[3].off();
 
     tessel.network.ap.disable();
 };

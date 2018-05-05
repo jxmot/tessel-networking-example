@@ -53,9 +53,10 @@ process.on('SIGBREAK', () => {
 const apconfig = {
         ssid: 'TESSEL_TEST',        // required
         password: '12341234$',      // required if network is password-protected
-        security: 'psk2'            // available values - none, wep, psk, psk2, default 
+        security: 'psk2',           // available values - none, wep, psk, psk2, default 
                                     // is 'none' if no password needed, default is 'psk2' otherwise. 
                                     // See https://tessel.io/docs/cli#usage for more info
+        channel: 4
 };
 
 // getNetIF() will increment this count each time 
@@ -103,7 +104,7 @@ tessel.network.ap.on('disable', () => {
     // Typically this has taken 5 to 10 seconds.    
 });
 
-// Iniialize the AP
+// Initialize the AP
 tesselAPinit();
 
 //////////////////////////////////////////////////////////////////////////////
@@ -117,6 +118,7 @@ function tesselAPinit() {
             console.log('SUCCESS - wifi.disable');
             console.log('creating AP now...\n');
             // create the AP
+            tessel.network.ap.channel(apconfig);
             tessel.network.ap.create(apconfig);
         }
     });

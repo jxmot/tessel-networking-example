@@ -1828,6 +1828,17 @@ class AP extends EventEmitter {
     cp.exec(`uci set wireless.@wifi-device[0].channel=${settings.channel}`);
   }
 
+  stations(type, callback) {
+    callback = enforceCallback(callback);
+
+    cp.exec(`/usr/local/bin/show_wifi_clients.sh ${type}`, (error, result) => {
+      if (error) {
+        throw error;
+      }
+      emitAndCallback('stations', this, JSON.parse(result), callback);
+    });
+  }
+
 } // class AP extends EventEmitter
 
 function createNetwork(settings) {

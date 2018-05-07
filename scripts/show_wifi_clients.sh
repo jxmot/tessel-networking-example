@@ -34,14 +34,12 @@ else
   echo "["
 fi
 
-mcount=0
-
 # list all wireless network interfaces 
 # (for MAC80211 driver; see wiki article for alternative commands)
-for interface in `iw dev | grep Interface | cut -f 2 -s -d" "`
+for interface in $(iw dev | grep Interface | cut -f 2 -s -d" ")
 do
   # for each interface, get mac addresses of connected stations/clients
-  maclist=`iw dev $interface station dump | grep Station | cut -f 2 -s -d" "`
+  maclist=$(iw dev $interface station dump | grep Station | cut -f 2 -s -d" ")
 
   mcount=$(echo "$maclist" | wc -w)
 
@@ -52,16 +50,14 @@ do
     # save it.
     ip="UNKN"
     host=""
-    ip=`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep $mac | cut -f 2 -s -d" "`
-    host=`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep $mac | cut -f 3 -s -d" "`
+    ip=$(cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep $mac | cut -f 2 -s -d" ")
+    host=$(cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep $mac | cut -f 3 -s -d" ")
     # ... show the mac address:
     if [ $jsonout -eq 0 ]; then
       echo -e "$ip\t$host\t$mac"
     else
-      tstamp=`cat /tmp/dhcp.leases | grep $mac | cut -f 1 -s -d" "`
-      #echo "{\"tstamp\":$tstamp,\"ip\":\"$ip\",\"host\":\"$host\",\"mac\":\"$mac\"}"
+      tstamp=$(cat /tmp/dhcp.leases | grep $mac | cut -f 1 -s -d" ")
       lineout="{\"tstamp\":$tstamp,\"ip\":\"$ip\",\"host\":\"$host\",\"mac\":\"$mac\"}"
-      #$((mcount--))
       mcount=$((mcount - 1))
       if [ $mcount -gt 0 ]; then
         echo "$lineout,"

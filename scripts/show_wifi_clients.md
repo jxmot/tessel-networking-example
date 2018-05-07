@@ -33,9 +33,11 @@ The differences are -
 
 # Tessel Firmware Modifications
 
-The `tessel-export.js` file will **require modification** if you want to use the station scanning feature. It's located in `t2-firmware/node`. Use the following steps - <br>
+The `tessel-export.js` file will **require modification** if you want to use the station scanning feature *within a Tessel application*. The file is located in `t2-firmware/node`. 
 
-1) Obtain a copy of the [`t2-firmware`](https://github.com/tessel/t2-firmware) repository and modify the file there.
+Use the following steps to modifiy it - <br>
+
+1) Obtain a copy of the [`t2-firmware`](https://github.com/tessel/t2-firmware) repository and modify the `t2-firmware/node/tessel-export.js` file there.
 
 2) Find the *Access Point class*, this can be done by searching `tessel-export.js` for `class AP extends EventEmitter {`.
 
@@ -44,7 +46,6 @@ The `tessel-export.js` file will **require modification** if you want to use the
 ```javascript
   stations(type, callback) {
     callback = enforceCallback(callback);
-
     cp.exec(`/usr/local/bin/show_wifi_clients.sh ${type}`, (error, result) => {
       if (error) {
         throw error;
@@ -89,7 +90,7 @@ tessel.network.ap.on('stations', (result) => {
 tessel.network.ap.stations('json');
 ```
 
-The output to the console will appear like this - <br>
+The output to the console will appear something like this - <br>
 
 ```
 stations = [{"tstamp":1525770745,"ip":"192.168.1.173","host":"ESP_49E3C5","mac":"2c:3a:e8:49:e3:c5"}]

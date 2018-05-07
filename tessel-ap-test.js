@@ -1,16 +1,15 @@
 'use strict';
 
-// jxmot - provide access to os.networkInterfaces()
+// provide access to os.networkInterfaces()
 const os = require('os');
 
 // Import the interface to Tessel hardware
 const tessel = require('tessel');
 
-// jxmot - turn off ports A and B, not in use so turn off
-// the LEDs
+// turn off ports A and B, not in use so we'll turn off the LEDs
 tessel.close();
 
-// Turn one of the LEDs on to start.
+// Turn one of the user LEDs on to start.
 tessel.led[2].on();
 
 // Blink!
@@ -65,11 +64,24 @@ const apconfig = {
 // versus when the AP is actually truly ready for
 // station connections.
 var netIFcount = 0;
+// timer IDs from setInterval() - 
+//      AP Ready detection
 var netIFid = undefined;
+//      Station Scanner
+var stationsintrvl = undefined;
 
 // Tessel network event handlers
 tessel.network.wifi.on('error', () => {
     console.log('ERROR - wifi');
+});
+
+// this will run after getStations() has returned
+// a list of attached stations. This is where you
+// would determine if any station(s) have been 
+// added or removed.
+tessel.network.ap.on('stations', (result) => {
+    // `result` is an array of connected stations.
+    console.log('stations = '+JSON.stringify(result));
 });
 
 // the AP has been created...
@@ -126,10 +138,8 @@ function tesselAPinit() {
 
 // clean up on exit, turn the LEDs off and disable the AP
 function tesselAPcleanup() {
+    clearInterval(stationsintrvl);
     clearInterval(blinkintrvl);
-    //tessel.led[2].off();
-    //tessel.led[3].off();
-
     tessel.network.ap.disable();
 };
 
@@ -158,8 +168,14 @@ function getNetIF() {
                 // and show the interface we need for the AP
                 console.log('wlan0 AP is ready - \n');
                 console.log(JSON.stringify(netif['wlan0'][0], null, 4));
+                // start scanning for connected stations
+                console.log('\nstation scan started...\n');
+                stationsintrvl = setInterval(getStations, 5000);
             } 
         } else netIFcount += 1;
     }
 };
 
+function getStations() {
+    tessel.network.ap.stations('json');
+};

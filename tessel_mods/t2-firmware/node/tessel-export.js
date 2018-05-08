@@ -1835,8 +1835,15 @@ class AP extends EventEmitter {
   // Usage:
   //    tessel.network.ap.stations('json');   // returns data via the 'stations' event
   //    tessel.network.ap.stations('text');   // returns data via the 'stations' event
+  // - OR - 
+  //    tessel.network.ap.stations('json', callback);
+  //    tessel.network.ap.stations('text', callback);
   //
-  // 2018-05-07 : callback has not been tested yet.
+  // Where :
+  //    function callback(error, stations) {
+  //        if(error) console.log('ERROR!');
+  //        else console.log('stations = '+JSON.stringify(stations));
+  //    };
   stations(type, callback) {
     callback = enforceCallback(callback);
     cp.exec(`/usr/local/bin/show_wifi_clients.sh ${type}`, (error, result) => {

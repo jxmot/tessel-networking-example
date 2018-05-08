@@ -1823,14 +1823,22 @@ class AP extends EventEmitter {
       .catch(error => emitErrorCallback(this, error, callback));
   }
 
-  // tessel.network.ap.channel({channel: 6})
+  // NOTE: This function is a "work in progress", it will be
+  // modified to utilize a callback and/or event.
+  // To call this function use - 
+  //    tessel.network.ap.channel({channel: 6});
   channel(settings) {
     cp.exec(`uci set wireless.@wifi-device[0].channel=${settings.channel}`);
   }
 
+  // retrieve a list of attached stations.
+  // Usage:
+  //    tessel.network.ap.stations('json');   // returns data via the 'stations' event
+  //    tessel.network.ap.stations('text');   // returns data via the 'stations' event
+  //
+  // 2018-05-07 : callback has not been tested yet.
   stations(type, callback) {
     callback = enforceCallback(callback);
-
     cp.exec(`/usr/local/bin/show_wifi_clients.sh ${type}`, (error, result) => {
       if (error) {
         throw error;

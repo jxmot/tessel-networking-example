@@ -9,6 +9,7 @@ The differences are -
     * Includes the time stamp found in the DHCP lease file 
 * Minor changes made to expressions
 
+This script **can be run** manually without the firmware modifications. However in order to run it from a Tessel application those modifications *are necessary*.
 
 **Default Ouput Example -**
 
@@ -97,5 +98,11 @@ stations = [{"tstamp":1525770745,"ip":"192.168.1.173","host":"ESP_49E3C5","mac":
 stations = [{"tstamp":1525770745,"ip":"192.168.1.173","host":"ESP_49E3C5","mac":"2c:3a:e8:49:e3:c5"},{"tstamp":1525770834,"ip":"192.168.1.158","host":"android-72d96d29a805b447","mac":"10:0a:23:e1:ab:3c"}]
 ```
 
-To see a working *example* of the scanner and the programmatic initialization of a Tessel access point please see [jxmot/tessel-networking-example](https://github.com/jxmot/tessel-networking-example). That repository contains the modified `tessel-export.js` file and the `tessel-ap-test.js` application.
+If there are no connected stations then the output to the console will appear like this - <br>
+
+```
+stations = []
+```
+
+To see a working *example* of the scanner and the programmatic initialization of a Tessel access point please see [jxmot/tessel-networking-example](https://github.com/jxmot/tessel-networking-example). That repository contains the modified `tessel-export.js` file and the `tessel-ap-test.js` application with the `show_wifi_clients.sh` script.
 

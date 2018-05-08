@@ -94,7 +94,7 @@ The output to the console will appear something like this - <br>
 
 ```
 stations = [{"tstamp":1525770745,"ip":"192.168.1.173","host":"ESP_49E3C5","mac":"2c:3a:e8:49:e3:c5"}]
-stations = [{"tstamp":1525770745,"ip":"192.168.1.173","host":"ESP_49E3C5","mac":"2c:3a:e8:49:e3:c5"},{"tstamp":1525770834,"ip":"192.168.1.158","host":"android-72d96d29a805b447","mac":"5c:a8:6a:f4:e8:ee"}]
+stations = [{"tstamp":1525770745,"ip":"192.168.1.173","host":"ESP_49E3C5","mac":"2c:3a:e8:49:e3:c5"},{"tstamp":1525770834,"ip":"192.168.1.158","host":"android-72d96d29a805b447","mac":"10:0a:23:e1:ab:3c"}]
 ```
 
 To see a working *example* of the scanner and the programmatic initialization of a Tessel access point please see [jxmot/tessel-networking-example](https://github.com/jxmot/tessel-networking-example). That repository contains the modified `tessel-export.js` file and the `tessel-ap-test.js` application.

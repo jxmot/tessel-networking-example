@@ -12,6 +12,7 @@ The *basic* intended purposes are -
 * Use the Ethernet interface to obtain an IP address via DHCP
 * Characterize the behavior of the AP when enabling or disabling programmatically
 * Investigate the Tessel's network API and its usage 
+* Test modifications to the Tessel's access point API
 
 At this time routing traffic between the Wifi interface and the Ethernet interface is not required. This will be addressed in a separate application and accompanying documentation.
 
@@ -21,7 +22,7 @@ This application will also be used for testing *modifications* to the Tessel 2 f
 
 # Tessel 2 Development Environment
 
-Hosted Windows 10 64bit with Node.js 6.10.2.
+Hosted on Windows 10 64bit with Node.js 6.10.2.
 
 ## Tessel 2 Environment Versions
 

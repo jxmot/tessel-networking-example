@@ -91,7 +91,7 @@ tessel.network.ap.on('stations', (result) => {
 tessel.network.ap.stations('json');
 ```
 
-The output to the console will appear something like this - <br>
+The output to the console will appear something like this if multiple calls to `tessel.network.ap.stations('json')` are made in succession  - <br>
 
 ```
 stations = [{"tstamp":1525770745,"ip":"192.168.1.173","host":"ESP_49E3C5","mac":"2c:3a:e8:49:e3:c5"}]

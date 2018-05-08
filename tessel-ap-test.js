@@ -176,6 +176,7 @@ function getNetIF() {
     }
 };
 
+// retrieve a list of connected stations
 function getStations() {
     tessel.network.ap.stations('json');
 };

@@ -70,19 +70,24 @@ var netIFid = undefined;
 //      Station Scanner
 var stationsintrvl = undefined;
 
+// use an event or a callback (if false)
+var stations_event = true;
+
 // Tessel network event handlers
 tessel.network.wifi.on('error', () => {
     console.log('ERROR - wifi');
 });
 
-// this will run after getStations() has returned
-// a list of attached stations. This is where you
-// would determine if any station(s) have been 
-// added or removed.
-tessel.network.ap.on('stations', (result) => {
-    // `result` is an array of connected stations.
-    console.log('stations = '+JSON.stringify(result));
-});
+if(stations_event === true) {
+    // this will run after getStations() has returned
+    // a list of attached stations. This is where you
+    // would determine if any station(s) have been 
+    // added or removed.
+    tessel.network.ap.on('stations', (stations) => {
+        // `stations` is an array of connected stations.
+        console.log('event stations = '+JSON.stringify(stations));
+    });
+}
 
 // the AP has been created...
 tessel.network.ap.on('create', (settings) => {
@@ -178,5 +183,14 @@ function getNetIF() {
 
 // retrieve a list of connected stations
 function getStations() {
-    tessel.network.ap.stations('json');
+    if(stations_event === true) tessel.network.ap.stations('json');
+    else tessel.network.ap.stations('json', cb_getStations);
 };
+
+// callback for tessel.network.ap.stations()
+function cb_getStations(error, stations) {
+    if(!error) console.log('callback stations = '+JSON.stringify(stations));
+    else console.log('callback ERROR');
+};
+
+

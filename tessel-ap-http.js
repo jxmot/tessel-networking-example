@@ -1,18 +1,13 @@
-//'use strict';
-
-// Node modules - 
 var http = require('http');
 var fs = require('fs');
 var url = require('url');
-/* ************************************************************************ */
-// Events
-const EventEmitter = require('events');
 
-module.exports = (function() {
+module.exports = (() => {
 
     httpsrv = {};
 
-    httpsrv.init = function(ipaddr) {
+    httpsrv.init = (ipaddr) => {
+
         console.log('starting up http server on '+ipaddr);
 
         // Create the server, and wait for a connection....

@@ -24,7 +24,7 @@ module.exports = (() => {
         serverhttp.listen(port, ipaddr);
 
         serverhttp.on('request',(req, res) => {
-            console.log('method = ' + req.method);
+            console.log(`${req.method} ${req.url}`);
             if(req.method == 'GET') {
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.write('<h1>Yo</h1>');
@@ -32,6 +32,5 @@ module.exports = (() => {
             }
         });
     };
-
     return httpsrv;
 })();

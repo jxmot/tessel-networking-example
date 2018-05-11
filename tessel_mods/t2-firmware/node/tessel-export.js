@@ -1471,10 +1471,6 @@ class Wifi extends EventEmitter {
       .catch(error => emitErrorCallback(this, error, callback));
   }
 
-  // NOTE: This function is a "work in progress", it will be
-  // modified to utilize a callback and/or event.
-  // To call this function use - 
-  //    tessel.network.ap.setChannel({channel: 6});
   getChannel(callback) {
     callback = enforceCallback(callback);
     channel({},'get')
@@ -1492,8 +1488,12 @@ class Wifi extends EventEmitter {
 } // class Wifi extends EventEmitter
 
 function channel(settings,action) {
+  const ucigetchannel = `uci get wireless.@wifi-device[0].channel`;
+  const ucisetchannel = `uci set wireless.@wifi-device[0].channel=${settings.channel}`;
+
   var act = (typeof action === 'string' ? (action.length === 3 ? action.toLowerCase() : 'get') : 'get');
-  var uciact = (act === 'set' ? `uci set wireless.@wifi-device[0].channel=${settings.channel}` : `uci get wireless.@wifi-device[0].channel`);
+  var uciact = (act === 'set' ? ucisetchannel : ucigetchannel);
+
   return new Promise(resolve => {
       cp.exec(uciact, (error, result) => {
       if (error) {

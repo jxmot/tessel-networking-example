@@ -6,7 +6,7 @@ module.exports = (() => {
 
     httpsrv = {};
 
-    httpsrv.init = (ipaddr) => {
+    httpsrv.init = (ipaddr, port) => {
 
         console.log('starting up http server on '+ipaddr);
 
@@ -21,7 +21,7 @@ module.exports = (() => {
             console.log(err);
         });
 
-        serverhttp.listen(80, ipaddr);
+        serverhttp.listen(port, ipaddr);
 
         serverhttp.on('request',(req, res) => {
             console.log('method = ' + req.method);

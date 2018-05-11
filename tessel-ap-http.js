@@ -31,8 +31,6 @@ module.exports = (function() {
         serverhttp.on('request',(req, res) => {
             console.log('method = ' + req.method);
             if(req.method == 'GET') {
-                //console.log(JSON.parse(req, null, 2));
-                //console.log(req);
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.write('<h1>Yo</h1>');
                 res.end();

@@ -1470,6 +1470,39 @@ class Wifi extends EventEmitter {
       .then(networks => callback(null, networks))
       .catch(error => emitErrorCallback(this, error, callback));
   }
+
+  // NOTE: This function is a "work in progress", it will be
+  // modified to utilize a callback and/or event.
+  // To call this function use - 
+  //    tessel.network.ap.setChannel({channel: 6});
+  getChannel(callback) {
+    callback = enforceCallback(callback);
+    channel({},'get')
+      .then(result => emitAndCallback(`getchannel`, this, result, callback))
+      .catch(error => emitErrorCallback(this, error, callback));
+  };
+
+  setChannel(settings, callback) {
+    callback = enforceCallback(callback);
+    channel(settings,'set')
+      .then(result => emitAndCallback(`setchannel`, this, result, callback))
+      .catch(error => emitErrorCallback(this, error, callback));
+  };
+
+} // class Wifi extends EventEmitter
+
+function channel(settings,action) {
+  var act = (typeof action === 'string' ? (action.length === 3 ? action.toLowerCase() : 'get') : 'get');
+  var uciact = (act === 'set' ? `uci set wireless.@wifi-device[0].channel=${settings.channel}` : `uci get wireless.@wifi-device[0].channel`);
+  return new Promise(resolve => {
+      cp.exec(uciact, (error, result) => {
+      if (error) {
+        throw error;
+      }
+      if(act === 'set') resolve(settings.channel);
+      else resolve(result);
+    });
+  });
 }
 
 function emitAndCallback(events, instance, data, callback) {
@@ -1821,14 +1854,6 @@ class AP extends EventEmitter {
         ip
       }), callback))
       .catch(error => emitErrorCallback(this, error, callback));
-  }
-
-  // NOTE: This function is a "work in progress", it will be
-  // modified to utilize a callback and/or event.
-  // To call this function use - 
-  //    tessel.network.ap.channel({channel: 6});
-  channel(settings) {
-    cp.exec(`uci set wireless.@wifi-device[0].channel=${settings.channel}`);
   }
 
   // retrieve a list of attached stations.

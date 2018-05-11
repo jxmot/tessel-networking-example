@@ -58,10 +58,13 @@ const apconfig = {
         channel: 4
 };
 
-// AP IP address
+// AP IP address (wlan0)
 var apip = '';
 // AP state
 var apready = false;
+// ethernet address (eth0)
+var ethip = '';
+
 // our server
 var httpsrv = require('./tessel-ap-http.js');
 
@@ -133,6 +136,7 @@ tessel.network.ap.on('disable', () => {
     tessel.led[2].off();
     tessel.led[3].off();
 
+    ethip = '';
     apip = '';
     apready = false;
 
@@ -184,6 +188,8 @@ function tesselAPcleanup() {
 };
 
 // list all network interfaces...
+// NOTE: rename and/or refactor this function. 
+
 function getNetIF() {
     var netif = os.networkInterfaces();
     console.log(`getNetIF() looking for wlan0 - #${netIFcount}`);
@@ -209,12 +215,16 @@ function getNetIF() {
                 console.log('wlan0 AP is ready - \n');
 // NOTE: verify if netif['wlan0'][0] will ALWAYS be 'IPv4'
                 console.log(JSON.stringify(netif['wlan0'][0], null, 4));
-                //apip = netif['wlan0'][0]['address'];
-                //apready = true;
+                // retreieve the IP and MAC for the access point(wlan0) and
+                // mark it as ready if successful
                 apip = getIPv4('wlan0');
                 apready = ((apip !== undefined) ? true : false);
-                // start the http server
+                // start an http server on the access point address
                 (apready === true ? httpsrv.init(apip.ip, 80) : console.log('httpsrv not started'));
+
+                ethip = getIPv4('eth0');
+                httpsrv.init(ethip.ip, 80)
+
                 // start scanning for connected stations
                 console.log('\nstation scan started...\n');
                 stationsintrvl = setInterval(getStations, 5000);

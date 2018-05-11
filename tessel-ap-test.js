@@ -207,11 +207,14 @@ function getNetIF() {
                 clearInterval(netIFid);
                 // and show the interface we need for the AP
                 console.log('wlan0 AP is ready - \n');
+// NOTE: verify if netif['wlan0'][0] will ALWAYS be 'IPv4'
                 console.log(JSON.stringify(netif['wlan0'][0], null, 4));
-                apip = netif['wlan0'][0]['address'];
-                apready = true;
+                //apip = netif['wlan0'][0]['address'];
+                //apready = true;
+                apip = getIPv4('wlan0');
+                apready = ((apip !== undefined) ? true : false);
                 // start the http server
-                httpsrv.init(apip);
+                (apready === true ? httpsrv.init(apip.ip, 80) : console.log('httpsrv not started'));
                 // start scanning for connected stations
                 console.log('\nstation scan started...\n');
                 stationsintrvl = setInterval(getStations, 5000);
@@ -230,6 +233,29 @@ function getStations() {
 function cb_getStations(error, stations) {
     if(!error) console.log('callback stations = '+JSON.stringify(stations));
     else console.log('callback ERROR');
+};
+
+// retrieve the IPv4 address of the specified interface
+function getIPv4(_iface) {
+    var addrinfo = {
+        ip: '',
+        mac: ''
+    };
+
+    var iface = ((_iface.toLowerCase() === 'wlan0' || _iface.toLowerCase() === 'eth0') ? _iface.toLowerCase() : 'UNKNWN');
+    if(iface !== 'UNKNWN') {
+        var netif = os.networkInterfaces();
+        if(netif[iface] !== undefined) {
+            for(var ix = 0;ix < netif[iface].length;ix++) {
+                if(netif[iface][ix]['family'] === 'IPv4') {
+                    addrinfo.ip = netif[iface][ix]['address'];
+                    addrinfo.mac = netif[iface][ix]['mac'];
+                    break;
+                }
+            }
+        } else addrinfo = undefined;
+    } else addrinfo = undefined;
+    return addrinfo;
 };
 
 

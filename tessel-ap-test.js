@@ -58,6 +58,13 @@ const apconfig = {
         channel: 4
 };
 
+// AP IP address
+var apip = '';
+// AP state
+var apready = false;
+// our server
+var httpsrv = require('./tessel-ap-http.js');
+
 // getNetIF() will increment this count each time 
 // it's called. It will help illustrate the difference
 // in when tessel.network.ap.on('enable',...) occurs 
@@ -125,6 +132,9 @@ tessel.network.ap.on('disable', () => {
     // turn the LEDs OFF as a indicator of success
     tessel.led[2].off();
     tessel.led[3].off();
+
+    apip = '';
+    apready = false;
 
     setTimeout(process.exit, 500);
     // NOTE: Even though we've arrived here because the
@@ -198,6 +208,10 @@ function getNetIF() {
                 // and show the interface we need for the AP
                 console.log('wlan0 AP is ready - \n');
                 console.log(JSON.stringify(netif['wlan0'][0], null, 4));
+                apip = netif['wlan0'][0]['address'];
+                apready = true;
+                // start the http server
+                httpsrv.init(apip);
                 // start scanning for connected stations
                 console.log('\nstation scan started...\n');
                 stationsintrvl = setInterval(getStations, 5000);

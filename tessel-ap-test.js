@@ -78,6 +78,18 @@ tessel.network.wifi.on('error', () => {
     console.log('ERROR - wifi');
 });
 
+tessel.network.wifi.on('disconnect', () => {
+    console.log('wifi disconnect');
+});
+
+tessel.network.wifi.on('getchannel', (error, channel) => {
+    console.log('wifi current channel = '+channel);
+});
+
+tessel.network.wifi.on('setchannel', (channel) => {
+    console.log('wifi new channel = '+channel);
+});
+
 if(stations_event === true) {
     // this will run after getStations() has returned
     // a list of attached stations. This is where you
@@ -133,10 +145,23 @@ function tesselAPinit() {
         else {
             // success disabling the wifi station
             console.log('SUCCESS - wifi.disable');
-            console.log('creating AP now...\n');
-            // create the AP
-            tessel.network.ap.channel(apconfig);
-            tessel.network.ap.create(apconfig);
+
+            // set the channel
+            console.log('setting AP channel '+apconfig.channel+' now...\n');
+            tessel.network.wifi.setChannel(apconfig, (error, result) => {
+// NOTE: swap the commenting on the "set" with "get" to
+// see either of them work.
+            // get the current channel
+            //console.log('getting AP channel now...\n');
+            //tessel.network.wifi.getChannel((error, result) => {
+                if(error) console.log('ERROR - wifi.getChannel\n');
+                else {
+                    console.log('AP channel = '+result);
+                    console.log('creating AP now...\n');
+                    // create the AP
+                    tessel.network.ap.create(apconfig);
+                }
+            });
         }
     });
 };

@@ -48,14 +48,23 @@ process.on('SIGBREAK', () => {
 });
 
 //////////////////////////////////////////////////////////////////////////////
+function getRandomInt(max,min) {
+    return Math.floor(Math.random() * (max - min) + min);
+};
+
+const ssidrand = true;
+const apssid = (ssidrand === true ? (`YO_${('0000'+getRandomInt(5000,0)).slice(-4)}`) : ('TESSEL_TEST'));
+
+const chanrand = true;
+const apchann = (chanrand === true ? getRandomInt(11,1) : 4);
 
 const apconfig = {
-        ssid: 'TESSEL_TEST',        // required
-        password: '12341234$',      // required if network is password-protected
-        security: 'psk2',           // available values - none, wep, psk, psk2, default 
-                                    // is 'none' if no password needed, default is 'psk2' otherwise. 
-                                    // See https://tessel.io/docs/cli#usage for more info
-        channel: 4
+        ssid: `${apssid}`,      // required
+        password: '12341234$',  // required if network is password-protected
+        security: 'psk2',       // available values - none, wep, psk, psk2, default 
+                                // is 'none' if no password needed, default is 'psk2' otherwise. 
+                                // See https://tessel.io/docs/cli#usage for more info
+        channel: apchann
 };
 
 // AP IP address (wlan0)
@@ -93,12 +102,15 @@ tessel.network.wifi.on('disconnect', () => {
 });
 
 tessel.network.wifi.on('getchannel', (error, channel) => {
-    console.log('wifi current channel = '+channel);
+    console.log(`wifi current channel = ${channel}`);
 });
 
 tessel.network.wifi.on('setchannel', (channel) => {
-    console.log('wifi new channel = '+channel);
+    console.log(`wifi new channel = ${channel}`);
 });
+
+var laststations = -1;
+var stationlist = {};
 
 if(stations_event === true) {
     // this will run after getStations() has returned
@@ -107,7 +119,11 @@ if(stations_event === true) {
     // added or removed.
     tessel.network.ap.on('stations', (stations) => {
         // `stations` is an array of connected stations.
-        console.log('event stations = '+JSON.stringify(stations));
+        if(laststations !== stations.length) {
+            console.log(`\nevent stations = ${JSON.stringify(stations)}\n`);
+            laststations = stations.length;
+            stationlist = JSON.parse(JSON.stringify(stations));
+        }
     });
 }
 
@@ -241,8 +257,11 @@ function getStations() {
 
 // callback for tessel.network.ap.stations()
 function cb_getStations(error, stations) {
-    if(!error) console.log('callback stations = '+JSON.stringify(stations));
-    else console.log('callback ERROR');
+    if(!error) {
+        console.log(`\ncallback stations = ${JSON.stringify(stations)}\n`);
+        laststations = stations.length;
+        stationlist = JSON.parse(JSON.stringify(stations));
+    } else console.log('callback ERROR');
 };
 
 // retrieve the IPv4 address of the specified interface

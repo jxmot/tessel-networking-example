@@ -22,17 +22,18 @@
         function autorun()
         {
             // ask the server for our IP
-            $.get("/info/ip", function(data) {
-                $("#ipaddr").html(data);
+            $.get('/info/ip', function(data) {
+                $('#ipaddr').html(data);
             });
 
             // ask the server for the current station list
-            $.get("/info/stations", function(data) {
-                $("#stations").html(data);
+            $.get('/info/stations', function(data) {
+                console.log(`stations - ${JSON.stringify(data)}`);
+                $('#stations').html(JSON.stringify(data));
             });
         }
-        if (document.addEventListener) document.addEventListener("DOMContentLoaded", autorun, false);
-        else if (document.attachEvent) document.attachEvent("onreadystatechange", autorun);
+        if(document.addEventListener) document.addEventListener('DOMContentLoaded', autorun, false);
+        else if(document.attachEvent) document.attachEvent('onreadystatechange', autorun);
         else window.onload = autorun;
     </script>
 </body>

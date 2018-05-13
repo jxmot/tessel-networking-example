@@ -1,8 +1,8 @@
 'use strict';
-
-// Import the interface to Tessel hardware
 const tessel = require('tessel');
-
+// turn off ports A and B, not in use so we'll turn off the LEDs
+tessel.close();
+// disable the access point...
 tessel.network.ap.disable( () => {
     console.log('AP disabled\n');
     // turn the LEDs OFF as a indicator of success

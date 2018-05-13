@@ -6,12 +6,10 @@
 # For more information, visit: https://tessel.io/docs/cli#usage
 
 # required
-/www/*
-/wwwadmin/*
-/ssl/*.key
-/ssl/*.crt
+/public/*
 tessel-ap-http.js
 mimetypes.js
+ap_shutdown.js
 
 # used for tests & demos
 portab-off.js

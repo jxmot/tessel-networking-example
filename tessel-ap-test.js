@@ -58,6 +58,7 @@ const apssid = (ssidrand === true ? (`YO_${('0000'+getRandomInt(5000,0)).slice(-
 const chanrand = true;
 const apchann = (chanrand === true ? getRandomInt(11,1) : 4);
 
+//////////////////////////////////////////////////////////////////////////////
 const apconfig = {
         ssid: `${apssid}`,      // required
         password: '12341234$',  // required if network is password-protected
@@ -74,8 +75,10 @@ var apready = false;
 // ethernet address (eth0)
 var ethip = '';
 
-// our server
-var httpsrv = require('./tessel-ap-http.js');
+// our servers
+const httpsrv = require('./tessel-ap-http.js');
+var http_wlan = {};
+var http_eth = {};
 
 // getNetIF() will increment this count each time 
 // it's called. It will help illustrate the difference
@@ -231,15 +234,16 @@ function getNetIF() {
                 console.log('wlan0 AP is ready - \n');
 // NOTE: verify if netif['wlan0'][0] will ALWAYS be 'IPv4'
                 console.log(JSON.stringify(netif['wlan0'][0], null, 4));
-                // retreieve the IP and MAC for the access point(wlan0) and
+
+                // retrieve the IP and MAC for the access point(wlan0) and
                 // mark it as ready if successful
                 apip = getIPv4('wlan0');
                 apready = ((apip !== undefined) ? true : false);
                 // start an http server on the access point address
-                (apready === true ? httpsrv.init(apip.ip, 80) : console.log('httpsrv not started'));
+                (apready === true ? http_wlan = new httpsrv(apip.ip, 80) : console.log('httpuser not started'));
 
                 ethip = getIPv4('eth0');
-                httpsrv.init(ethip.ip, 80)
+                http_eth = new httpsrv(ethip.ip, 80, 'wwwadmin', adminAPI);
 
                 // start scanning for connected stations
                 console.log('\nstation scan started...\n');
@@ -287,4 +291,41 @@ function getIPv4(_iface) {
     return addrinfo;
 };
 
+// passed to httpserver.init(), where it is called
+// and expected to return either -
+//      'false' = response not sent
+//      'true'  = response was sent
+function adminAPI(reqpath, req, res) {
+    let bRet = false;
+
+    if(reqpath.includes('/info/') === true) {
+        switch(reqpath) {
+            case '/info/ip' :
+                res.statusCode = 200;
+                let ipx = req.headers["x-forwarded-for"];
+                if(ipx) {
+                    let list = ipx.split(",");
+                    ipx = list[list.length-1];
+                } else ipx = req.connection.remoteAddress;
+                res.end(`${ipx}`);
+                bRet = true;
+                break;
+
+            case '/info/stations':
+                res.statusCode = 200;
+                res.setHeader('Content-type', mime.types['.json']);
+                res.end(JSON.stringify(stationlist));
+                break;
+
+            case '/info/TBD':
+            default:
+                res.statusCode = 501;
+                res.end(`unknown ${reqpath} - ${err}`);
+                bRet = true;
+                break;
+        };
+    }
+
+    return bRet;
+};
 

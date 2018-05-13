@@ -13,7 +13,9 @@ function httpsrv(ipaddr, port, _docroot, userPaths) {
         docroot = _docroot;
     }
 
-    const wwwpath = path.join(__dirname, docroot);
+//    const wwwpath = path.join(__dirname, docroot);
+    const wwwpath = path.join(path.join(__dirname,'public'), docroot);
+    const wwwcomm = path.join(__dirname,'public');
 
     console.log(`httpsrv : starting up http server on ${ipaddr}:${port} ${wwwpath}`);
 
@@ -40,9 +42,7 @@ function httpsrv(ipaddr, port, _docroot, userPaths) {
         if(userPaths !== undefined) bRet = userPaths(reqpath, req, res);
 
         if(bRet === false) {
-            //let pathname = path.join(wwwpath, reqpath);
             if(req.method == 'GET') {
-                //servePath(pathname,wwwpath,res);
                 servePath(req, res, wwwpath);
             } // else POST, DEL, PATCH, etc
         }
@@ -50,7 +50,6 @@ function httpsrv(ipaddr, port, _docroot, userPaths) {
 };
 
 
-//function servePath(pathname, wwwpath, res) {
 function servePath(req, res, wwwpath) {
 
     let pathname = path.join(wwwpath, url.parse(req.url).pathname);
@@ -62,9 +61,13 @@ function servePath(req, res, wwwpath) {
                 res.status(204).send('/favicon.ico does not exist');
                 res.end();
             } else {
-                res.statusCode = 404;
-                console.log(`httpsrv.servePath() : File ${pathname} not found!`);
-                serveFile(path.join(wwwpath, '404.html'), res);
+                if(pathname.includes('404.css') === true) {
+                    serveFile(path.join(path.join(__dirname,'public'), '/assets/css/404.css'), res);
+                } else {
+                    res.statusCode = 404;
+                    console.log(`httpsrv.servePath() : File ${pathname} not found!`);
+                    serveFile(path.join(path.join(__dirname,'public'), '404.html'), res);
+                }
             }
          } else {
             if (fs.statSync(pathname).isDirectory()) {
@@ -76,6 +79,7 @@ function servePath(req, res, wwwpath) {
 };
 
 function serveFile(pathname, res) {
+    console.log('serveFile - '+pathname);
     fs.readFile(pathname, (err, data) => {
         if(err){
             res.statusCode = 500;

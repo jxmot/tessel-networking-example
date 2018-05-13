@@ -8,7 +8,13 @@
 # required
 /www/*
 /wwwadmin/*
+tessel-ap-http.js
+mimetypes.js
 
 # used for tests & demos
 portab-off.js
 net_iface.js
+
+# temporary, don't check this in
+_http.js
+_test.js

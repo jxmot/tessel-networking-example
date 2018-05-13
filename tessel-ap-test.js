@@ -91,7 +91,7 @@ var ethip = '';
 //
 // When the following is 'true' there will be two HTTP servers started. One
 // will listen on the IP assigned to wlan0 and the other is on eth0.
-const httpenable = false;
+const httpenable = true;
 
 const httpsrv = require('./tessel-ap-http.js');
 var http_wlan = {};
@@ -272,7 +272,7 @@ function getNetIF() {
 
                 if(httpenable === true) {
                     // start an http server on the access point address
-                    (apready === true ? http_wlan = new httpsrv(apip.ip, 80) : console.log('httpuser not started'));
+                    (apready === true ? http_wlan = new httpsrv(apip.ip, 80, 'www', adminAPI) : console.log('httpuser not started'));
                     http_eth = new httpsrv(ethip.ip, 80, 'wwwadmin', adminAPI);
                 }
                 // start scanning for connected stations

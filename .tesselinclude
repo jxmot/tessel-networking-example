@@ -8,6 +8,8 @@
 # required
 /www/*
 /wwwadmin/*
+/ssl/*.key
+/ssl/*.crt
 tessel-ap-http.js
 mimetypes.js
 
@@ -17,4 +19,5 @@ net_iface.js
 
 # temporary, don't check this in
 _http.js
+_https.js
 _test.js

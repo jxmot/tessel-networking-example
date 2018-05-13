@@ -3,6 +3,7 @@
 _*.*
 # And the following folder(s) -
 node_modules
+/ssl
 /_*
 /sql
 /nbproject/private/

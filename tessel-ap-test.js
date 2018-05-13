@@ -77,6 +77,7 @@ var ethip = '';
 
 // our servers
 const httpsrv = require('./tessel-ap-http.js');
+const httpenable = false;
 var http_wlan = {};
 var http_eth = {};
 
@@ -239,12 +240,14 @@ function getNetIF() {
                 // mark it as ready if successful
                 apip = getIPv4('wlan0');
                 apready = ((apip !== undefined) ? true : false);
-                // start an http server on the access point address
-                (apready === true ? http_wlan = new httpsrv(apip.ip, 80) : console.log('httpuser not started'));
-
+                // retrieve the IP and MAC for the other interface
                 ethip = getIPv4('eth0');
-                http_eth = new httpsrv(ethip.ip, 80, 'wwwadmin', adminAPI);
 
+                if(httpenable === true) {
+                    // start an http server on the access point address
+                    (apready === true ? http_wlan = new httpsrv(apip.ip, 80) : console.log('httpuser not started'));
+                    http_eth = new httpsrv(ethip.ip, 80, 'wwwadmin', adminAPI);
+                }
                 // start scanning for connected stations
                 console.log('\nstation scan started...\n');
                 stationsintrvl = setInterval(getStations, 5000);

@@ -1,15 +1,15 @@
 {
   "name": "ether_client-wifi_ap",
-  "version": "0.0.0",
-  "description": "Tessel project",
-  "main": "index.js",
+  "version": "0.0.1",
+  "description": "A Tessel 2 application for testing the AP.",
+  "main": "tessel-ap-test.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": "www.github.com/tessel/t2-cli",
+  "repository": "https://github.com/jxmot/tessel-networking-example",
   "keywords": [
-    "Tessel"
+    "Tessel","accesspoint","wifi","http-server","http","firmware"
   ],
   "license": "MIT",
-  "readme": "A bare bones Tessel 2 blinky script."
+  "readme": "Tessel 2 Networking in AP mode."
 }

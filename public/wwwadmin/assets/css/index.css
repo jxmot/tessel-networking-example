@@ -1,6 +1,6 @@
 .table-scroll {  
     max-height: 450px !important;
-    overflow: scroll;
+    overflow: auto;
 }
 
 .table-cell-center {

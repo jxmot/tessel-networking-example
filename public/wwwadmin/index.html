@@ -44,7 +44,6 @@
             // ask the server for the current station list
             $.get('/info/stations', function(data) {
                 console.log(`stations - ${JSON.stringify(data)}`);
-                //$('#stations').html(JSON.stringify(data));
                 renderStations($('#station-list-body'), data);
             });
         }
@@ -57,10 +56,10 @@
                 // copy the label data, break any references
                 const station = JSON.parse(JSON.stringify(stations[ix]));
         
-                let mac = station.mac;
+                //let mac = station.mac;
         
                 // append the current index to the name
-                mac = mac.trim().replace(/\:/g, '');
+                let mac = station.mac.trim().replace(/\:/g, '');
                 let macix = mac+'-'+ix;
         
                 // build the table's row element
@@ -86,6 +85,7 @@
         
                 // all cells complete, append this row to the table
                 $(target).append(row);
+                //sortTable(target, 'tstamp');
             }
         };
         
@@ -100,18 +100,21 @@
             return iso[1] + ' ' + iso[2];
         };
         
-// NOTE: requires modification for correct column(s)
+// NOTE: requires modification for correct column(s), since this app 
+// should sort by the timestamp (data-tstamp) find a way to genericize
+// this code.
         // https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_sort_table
         function sortTable(target) {
             var table, rows, switching, i, x, y, shouldSwitch;
-            table = document.getElementById(target);
+            table = $(target);
             switching = true;
             /*Make a loop that will continue until
             no switching has been done:*/
             while (switching) {
                 //start by saying: no switching is done:
                 switching = false;
-                rows = table.getElementsByTagName('TR');
+                //rows = table.getElementsByTagName('TR');
+                rows = table.children();
                 /*Loop through all table rows (except the
                 first, which contains table headers):*/
                 for (i = 1; i < (rows.length - 1); i++) {
@@ -119,8 +122,8 @@
                     shouldSwitch = false;
                     /*Get the two elements you want to compare,
                     one from current row and one from the next:*/
-                    x = rows[i].getElementsByTagName('TD')[0];
-                    y = rows[i + 1].getElementsByTagName('TD')[0];
+                    x = rows[i].getElementsByTagName('TD')[2];
+                    y = rows[i + 1].getElementsByTagName('TD')[2];
                     //check if the two rows should switch place:
                     if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
                         //if so, mark as a switch and break the loop:

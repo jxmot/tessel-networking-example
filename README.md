@@ -2,7 +2,7 @@
 
 **NOTE : This document is a "work-in-progress". It is likely to change, when this message is no longer present this document can be considered ready for use.**
 
-This repository contains a networking test application for the Tessel 2.
+This repository contains a networking application for the Tessel 2.
 
 # Purpose
 
@@ -15,10 +15,6 @@ The *basic* intended purposes are -
 * Test modifications to the Tessel's access point API
 
 At this time routing traffic between the Wifi interface and the Ethernet interface is not required. This will be addressed in a separate application and accompanying documentation.
-
-## Additional Uses
-
-This application will also be used for testing *modifications* to the Tessel 2 firmware. Details are provided later in this document under [Tessel 2 Network API Modification Proposals](#tessel_2_network_api_modification_proposals).
 
 # Tessel 2 Development Environment
 
@@ -52,7 +48,7 @@ In the current Tessel 2 version those properties are only modifiable from within
 
 #### Modifying the Access Point Characteristics
 
-This will be addressed later in this document under [OpenWRT Configuration](#openwrt_configuration).
+This will be addressed later in this document under [OpenWRT Configuration](#openwrt-configuration).
 
 # Desired Results
 

@@ -1,10 +1,24 @@
+'use strict';
+
 const http = require('http');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
-const mime = require('./mimetypes.js');
+const mimetyp = require('./mimetypes.js');
 
 module.exports = httpsrv;
+
+httpsrv.test = function() {
+    console.log('test!!!');
+};
+
+httpsrv.mime = function(pathname) {
+    return mimetyp.types[path.parse(pathname).ext];
+};
+
+httpsrv.mimetype = function(ext) {
+    return mimetyp.types[ext];
+};
 
 function httpsrv(ipaddr, port, _docroot, userPaths) {
 
@@ -13,7 +27,6 @@ function httpsrv(ipaddr, port, _docroot, userPaths) {
         docroot = _docroot;
     }
 
-//    const wwwpath = path.join(__dirname, docroot);
     const wwwpath = path.join(path.join(__dirname,'public'), docroot);
     const wwwcomm = path.join(__dirname,'public');
 
@@ -39,7 +52,7 @@ function httpsrv(ipaddr, port, _docroot, userPaths) {
 
         const reqpath = url.parse(req.url).pathname;
 
-        if(userPaths !== undefined) bRet = userPaths(reqpath, req, res);
+        if(userPaths !== undefined) bRet = userPaths(reqpath, req, res, httpsrv);
 
         if(bRet === false) {
             if(req.method == 'GET') {
@@ -86,7 +99,7 @@ function serveFile(pathname, res) {
             res.end(`Error getting the file - ${err}.`);
         } else {
             res.statusCode = (res.statusCode !== 404 ? 200 : res.statusCode);;
-            res.setHeader('Content-type', mime.types[path.parse(pathname).ext] || 'text/plain' );
+            res.setHeader('Content-type', mimetyp.types[path.parse(pathname).ext] || 'text/plain' );
             res.end(data);
         }
     });

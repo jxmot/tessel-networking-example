@@ -325,9 +325,8 @@ function getIPv4(_iface) {
 // and expected to return either -
 //      'false' = response not sent
 //      'true'  = response was sent
-function adminAPI(reqpath, req, res) {
+function adminAPI(reqpath, req, res, server) {
     let bRet = false;
-
     if(reqpath.includes('/info/') === true) {
         switch(reqpath) {
             case '/info/ip' :
@@ -343,8 +342,11 @@ function adminAPI(reqpath, req, res) {
 
             case '/info/stations':
                 res.statusCode = 200;
-                res.setHeader('Content-type', mime.types['.json']);
+                console.log(server.mimetype('.json'));
+                res.setHeader('Content-type', server.mimetype('.json'));
                 res.end(JSON.stringify(stationlist));
+                console.log(`stationlist = ${JSON.stringify(stationlist,null,2)}`);
+                bRet = true;
                 break;
 
             case '/info/TBD':

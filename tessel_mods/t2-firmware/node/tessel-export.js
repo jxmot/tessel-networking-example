@@ -1491,8 +1491,8 @@ function channel(settings,action) {
   const ucigetchannel = `uci get wireless.@wifi-device[0].channel`;
   const ucisetchannel = `uci set wireless.@wifi-device[0].channel=${settings.channel}`;
 
-  var act = (typeof action === 'string' ? (action.length === 3 ? action.toLowerCase() : 'get') : 'get');
-  var uciact = (act === 'set' ? ucisetchannel : ucigetchannel);
+  let act = (typeof action === 'string' ? (action.length === 3 ? action.toLowerCase() : 'get') : 'get');
+  let uciact = (act === 'set' ? ucisetchannel : ucigetchannel);
 
   return new Promise(resolve => {
       cp.exec(uciact, (error, result) => {

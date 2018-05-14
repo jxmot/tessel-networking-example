@@ -4,3 +4,18 @@
 # .tesselinclude works the same as .npminclude
 # You DO NOT need to list node_modules or package.json
 # For more information, visit: https://tessel.io/docs/cli#usage
+
+# required
+/public/*
+tessel-ap-http.js
+mimetypes.js
+ap_shutdown.js
+
+# used for tests & demos
+portab-off.js
+net_iface.js
+
+# temporary, don't check this in
+_http.js
+_https.js
+_test.js

@@ -53,7 +53,7 @@ do
   do
     # If a DHCP lease has been given out by dnsmasq,
     # save it.
-    ip="UNKN"
+    ip=""
     host=""
     ip=$(cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep $mac | cut -f 2 -s -d" ")
     host=$(cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep $mac | cut -f 3 -s -d" ")
@@ -63,6 +63,7 @@ do
     else
       # output data as JSON
       tstamp=$(cat /tmp/dhcp.leases | grep $mac | cut -f 1 -s -d" ")
+# MUST check fields (tstamp, host) for "" and do not output if true
       echo -n "{\"tstamp\":$tstamp,\"ip\":\"$ip\",\"host\":\"$host\",\"mac\":\"$mac\"}"
       # decrement the count, if > 0 then append a comma
       mcount=$((mcount - 1))

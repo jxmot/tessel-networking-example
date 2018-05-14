@@ -22,3 +22,9 @@ setInterval(() => {
 
 console.log("I'm blinking! (Press CTRL + C to stop)");
 
+process.on('SIGINT', () => {
+    console.log('\nCaught interrupt signal, exiting...\n');
+    tessel.led[2].off();
+    tessel.led[3].off();
+    process.exit();
+});

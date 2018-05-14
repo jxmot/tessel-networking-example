@@ -1,0 +1,16 @@
+.table-scroll {  
+    max-height: 450px !important;
+    overflow: scroll;
+}
+
+.table-cell-center {
+    text-align:center;
+}
+
+table, th, td {
+   border: 1px solid black;
+}
+
+td, tr {
+    vertical-align: middle !important;
+}

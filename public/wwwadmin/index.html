@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>title</title>
+    <link rel="stylesheet" href="assets/css/index.css">
 </head>
 <body>
     <h1>Access Point Demo - ADMIN</h1>
@@ -12,7 +13,21 @@
     <br>
     <p>
         current stations - <br>
-        <span id="stations"></span>
+        <div class="table-responsive table-scroll">
+            <table class="table" id="repo-labels-list">
+                <thead>
+                    <tr id="labels-list-header-row">
+                        <th class="table-cell-center">MAC</th>
+                        <th class="table-cell-center">IP</th>
+                        <th class="table-cell-center">Lease Expires</th>
+                        <th class="table-cell-center">Host</th>
+                    </tr>
+                </thead>
+                <tbody id="station-list-body">
+                    <!-- stations are added dynamically -->
+                </tbody>
+            </table>
+        </div>
     </p>
     <p style="text-align:center">
         <img src="/assets/img/tessel.png"/>
@@ -29,12 +44,98 @@
             // ask the server for the current station list
             $.get('/info/stations', function(data) {
                 console.log(`stations - ${JSON.stringify(data)}`);
-                $('#stations').html(JSON.stringify(data));
+                //$('#stations').html(JSON.stringify(data));
+                renderStations($('#station-list-body'), data);
             });
         }
         if(document.addEventListener) document.addEventListener('DOMContentLoaded', autorun, false);
         else if(document.attachEvent) document.attachEvent('onreadystatechange', autorun);
         else window.onload = autorun;
+
+        function renderStations(target, stations) {
+            for(var ix = 0;ix < stations.length;ix += 1) {
+                // copy the label data, break any references
+                const station = JSON.parse(JSON.stringify(stations[ix]));
+        
+                let mac = station.mac;
+        
+                // append the current index to the name
+                mac = mac.trim().replace(/\:/g, '');
+                let macix = mac+'-'+ix;
+        
+                // build the table's row element
+                let row = $('<tr>').attr('id', macix);
+                $(row).attr('data-statn', JSON.stringify(station));
+        
+                let cell = $('<td>').attr('id', macix+'-mac').text((station.mac === null ? '' : station.mac));
+                $(cell).addClass('table-cell-center');
+                $(row).append(cell);
+        
+                cell = $('<td>').attr('id', macix+'-ip').text((station.ip === null ? '' : station.ip));
+                $(cell).addClass('table-cell-center');
+                $(row).append(cell);
+        
+                cell = $('<td>').attr('id', macix+'-tstamp').text((station.tstamp === null ? '' : getDateTime(station.tstamp)));
+                $(cell).addClass('table-cell-center');
+                $(cell).attr('data-tstamp', station.tstamp);
+                $(row).append(cell);
+        
+                cell = $('<td>').attr('id', macix+'-host').text((station.host === null ? '' : station.host));
+                $(cell).addClass('table-cell-center');
+                $(row).append(cell);
+        
+                // all cells complete, append this row to the table
+                $(target).append(row);
+            }
+        };
+        
+        function today(_offset) {
+            return getDateTime((new Date).getTime(), _offset);
+        };
+        
+        function getDateTime(tstamp, _offset) {
+            var offset = (_offset === undefined ? -5 : _offset);
+            var date = new Date((tstamp*1000) + (3600000*offset));
+            var iso = date.toISOString().match(/(\d{4}\-\d{2}\-\d{2})T(\d{2}:\d{2}:\d{2})/);
+            return iso[1] + ' ' + iso[2];
+        };
+        
+// NOTE: requires modification for correct column(s)
+        // https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_sort_table
+        function sortTable(target) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById(target);
+            switching = true;
+            /*Make a loop that will continue until
+            no switching has been done:*/
+            while (switching) {
+                //start by saying: no switching is done:
+                switching = false;
+                rows = table.getElementsByTagName('TR');
+                /*Loop through all table rows (except the
+                first, which contains table headers):*/
+                for (i = 1; i < (rows.length - 1); i++) {
+                    //start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /*Get the two elements you want to compare,
+                    one from current row and one from the next:*/
+                    x = rows[i].getElementsByTagName('TD')[0];
+                    y = rows[i + 1].getElementsByTagName('TD')[0];
+                    //check if the two rows should switch place:
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        //if so, mark as a switch and break the loop:
+                        shouldSwitch= true;
+                        break;
+                    }
+                }
+                if (shouldSwitch) {
+                    /*If a switch has been marked, make the switch
+                    and mark that a switch has been done:*/
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+        };
     </script>
 </body>
 </html>

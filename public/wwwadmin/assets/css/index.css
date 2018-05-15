@@ -5,6 +5,7 @@
 
 .table-cell-center {
     text-align:center;
+    padding: .5% 1% .5% 1%;
 }
 
 table, th, td {

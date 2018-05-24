@@ -1869,17 +1869,183 @@ class AP extends EventEmitter {
   //        if(error) console.log('ERROR!');
   //        else console.log('stations = '+JSON.stringify(stations));
   //    };
+  stations(callback) {
+    callback = enforceCallback(callback);
+
+    geStations()
+    .then(result => {
+        console.log(`got ALL ${JSON.stringify(result)}`);
+        emitAndCallback('stations', this, result, callback);
+    })
+    .catch(error => {
+        reject(error);
+        emitErrorCallback(this, error, callback);
+    });
+  }
+
+/*
   stations(type, callback) {
     callback = enforceCallback(callback);
+
+    let stalist = [];
+    let station = {};
+    
+    let _ifaces = cp.execSync('iw dev | grep Interface | cut -f 2 -s -d" "').toString();
+    let ifaces = (_ifaces.trim() != '') ? _ifaces.split('\n').filter(function(el) {return el.length != 0}) : [];
+    
+    ifaces.forEach((netif, index) => {
+        let _maclist = cp.execSync(`iw dev ${netif} station dump | grep Station | cut -f 2 -s -d" "`).toString();
+        let maclist = (_maclist.trim() != '') ? _maclist.split('\n').filter(function(el) {return el.length != 0}) : [];
+    
+        maclist.forEach((mac, index) => {
+            station.mac = mac;
+            let ip = cp.execSync(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${station.mac} | cut -f 2 -s -d" "`).toString();
+            station.ip = ip.replace(/(\r\n\t|\n|\r\t)/gm,'');
+            let host = cp.execSync(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${station.mac} | cut -f 3 -s -d" "`).toString();
+            station.host = host.replace(/(\r\n\t|\n|\r\t)/gm,'');
+            let tstamp = cp.execSync(`cat /tmp/dhcp.leases | grep ${station.mac} | cut -f 1 -s -d" "`).toString();
+            station.tstamp = tstamp.replace(/(\r\n\t|\n|\r\t)/gm,'');
+            stalist.push(JSON.parse(JSON.stringify(station)));
+        });
+    });
+    emitAndCallback('stations', this, stalist, callback);
+*/
+/*
     cp.exec(`/usr/local/bin/show_wifi_clients.sh ${type}`, (error, result) => {
       if (error) {
         throw error;
       }
       emitAndCallback('stations', this, JSON.parse(result), callback);
     });
-  }
+*/
+//  }
 
 } // class AP extends EventEmitter
+
+function geStations() {
+    var _stalist = [];
+    return new Promise((resolve,reject) => {
+        getNetIFs()
+        .then(netifs => {
+            console.log(`netifs.length = ${netifs.length}`);
+            if(netifs.length === 0) reject(new Error('netif length=0'));
+            else {
+                let prom = [];
+                netifs.forEach((netif, index) => {
+                    prom.push(getMACsFromNetIF(netif));
+                });
+                Promise.all(prom).then(maclist => {
+                    let prom2 = [];
+                    console.log(`maclist.length = ${maclist.length}`);
+                    if(maclist.length === 0) reject(new Error('mac length=0'));
+                    maclist.forEach((mac, index) => {
+                        prom2.push(getMACInfo(mac));
+                    });
+                    Promise.all(prom2).then(station => {
+                        station.forEach((found, index) => {
+                            _stalist.push(found);
+                        });
+                        resolve(_stalist);
+                    });
+                });
+            }
+        });
+    });
+};
+
+function getNetIFs() {
+    return new Promise(resolve => {
+        cp.exec('iw dev | grep Interface | cut -f 2 -s -d" "', (error, _ifaces) => {
+            if (error) {
+                throw error;
+            }
+            // ifaces will contain all of the wireless interface names, typically
+            // on the tessel it would just be "wlan0"
+            let ifaces = (_ifaces.trim() != '') ? _ifaces.split('\n').filter(function(el) {return el.length != 0}) : [];
+            console.log(`ifaces = ${JSON.stringify(ifaces)}`);
+            resolve(ifaces);
+        });
+    });
+};
+
+function getMACsFromNetIF(netif) {
+    return new Promise(resolve => {
+        cp.exec(`iw dev ${netif} station dump | grep Station | cut -f 2 -s -d" "`, (error, _maclist) => {
+            if (error) {
+                throw error;
+            }
+            let maclist = (_maclist.trim() != '') ? _maclist.split('\n').filter(function(el) {return el.length != 0}) : [];
+            console.log(`maclist = ${JSON.stringify(maclist)}`);
+            resolve(maclist);
+        });
+    });
+};
+
+function getMACInfo(mac) {
+    let station = {};
+    console.log(`getMACInfo ${mac}`);
+    return new Promise((resolve,reject) => {
+        if(mac !== '') {
+            console.log(`getting ip with ${mac}`);
+            getMACInfo_ip(mac)
+            .then(station => {
+                console.log(`getting host with ${JSON.stringify(station)}`);
+                getMACInfo_host(station)
+                .then(station => {
+                    console.log(`getting lease with ${JSON.stringify(station)}`);
+                    getMACInfo_lease(station)
+                    .then(station => {
+                        resolve(station);
+                    });
+                });
+            });
+        } else reject(new Error('mac = ""'));
+    });
+};
+
+function getMACInfo_ip(mac) {
+    let station = {};
+    return new Promise(resolve => {
+        cp.exec(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${mac} | cut -f 2 -s -d" "`, (error, ip) => {
+            if (error) {
+                throw error;
+            }
+            station.mac = mac.toString();
+            station.ip = ip.replace(/(\r\n\t|\n|\r\t)/gm,'');
+            console.log(`getMACInfo_ip mac = ${station.mac}    ip = ${station.ip}`);
+            resolve(station);
+        });
+    });
+};
+
+function getMACInfo_host(station) {
+    console.log(`getMACInfo_host ${station.mac}`);
+    return new Promise(resolve => {
+        cp.exec(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${station.mac} | cut -f 3 -s -d" "`, (error, host) => {
+            if (error) {
+                console.log(`getMACInfo_host error = ${error}`);
+                throw error;
+            }
+            station.host = host.replace(/(\r\n\t|\n|\r\t)/gm,'');
+            console.log(`mac = ${station.mac}    ip = ${station.ip}    host = ${station.host}`);
+            resolve(station);
+        });
+    });
+};
+
+function getMACInfo_lease(station) {
+    console.log(`getMACInfo_lease ${station.mac}`);
+    return new Promise(resolve => {
+        cp.exec(`cat /tmp/dhcp.leases | grep ${station.mac} | cut -f 1 -s -d" "`, (error, tstamp) => {
+            if (error) {
+                throw error;
+            }
+            station.tstamp = tstamp.replace(/(\r\n\t|\n|\r\t)/gm,'');
+            console.log(`mac = ${station.mac}    ip = ${station.ip}    host = ${station.host}    tstamp = ${station.tstamp}`);
+            resolve(station);
+        });
+    });
+};
 
 function createNetwork(settings) {
   const commands = `

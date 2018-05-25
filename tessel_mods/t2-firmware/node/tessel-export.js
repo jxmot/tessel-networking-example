@@ -1888,17 +1888,28 @@ function getStations() {
                 netifs.forEach((netif, index) => {
                     prom.push(getMACsFromNetIF(netif));
                 });
-                Promise.all(prom).then(maclist => {
+                Promise.all(prom).then(ifacemacs => {
                     let prom2 = [];
-                    if(maclist.length === 0) reject(new Error('mac length=0'));
-                    console.log(`0] ${JSON.stringify(maclist[0])}`);
-                    console.log(`0] ${JSON.stringify(maclist)}`);
-                    console.log(`1] typeof ${typeof maclist}`);
-                    console.log(`2] typeof ${typeof maclist[0]}`);
-                    maclist.forEach((mac, index) => {
-                        console.log(`1 typeof ${typeof mac}`);
-                        prom2.push(getMACInfo(mac));
+// this will always be 1 even if empty
+                    if(ifacemacs.length === 0) reject(new Error('mac length=0'));
+                    console.log(`0] ${JSON.stringify(ifacemacs[0])}`);
+                    console.log(`0] ${JSON.stringify(ifacemacs)}`);
+                    console.log(`1] typeof ${typeof ifacemacs}`);
+                    console.log(`2] typeof ${typeof ifacemacs[0]}`);
+                    
+                    // 
+                    // iface [
+                    //      {iface:"wlan0",list:[]},
+                    //      {iface:"wlanX",list:[]}
+                    // ]
+                    ifacemacs.forEach((iface, iface_idx) => {
+                        console.log(`macs ${iface['mlist']}`);
+                        iface['mlist'].forEach((mac, index) => {
+                            console.log(`1 typeof ${typeof mac}  ${index}`);
+                            prom2.push(getMACInfo(ifacemacs[iface_idx].iface, mac));
+                        });
                     });
+
                     Promise.all(prom2).then(station => {
                         station.forEach((found, index) => {
                             _stalist.push(found);
@@ -1931,14 +1942,21 @@ function getMACsFromNetIF(netif) {
             if (error) {
                 throw error;
             }
-            let maclist = (_maclist.trim() != '') ? _maclist.split('\n').filter(function(el) {return el.length != 0}) : [];
+            let maclist = (_maclist.trim() !== '') ? _maclist.split('\n').filter(function(el) {return el.length != 0}) : [];
+            console.log(`X  ${_maclist.trim() !== ''}`);
+            console.log(`X  ${_maclist}`);
             console.log(`X  ${JSON.stringify(maclist)}`);
-            resolve(maclist);
+            let result = {
+                'iface': netif,
+                'mlist': maclist
+            };
+            resolve(result);
         });
     });
 };
 
-function getMACInfo(mac) {
+function getMACInfo(iface, mac) {
+    console.log(`2 iface ${iface}`);
     console.log(`2 typeof ${typeof mac}`);
     let station = {};
     return new Promise((resolve,reject) => {
@@ -1949,6 +1967,7 @@ function getMACInfo(mac) {
                 .then(station => {
                     getMACInfo_lease(station)
                     .then(station => {
+                        station.iface = iface;
                         resolve(station);
                     });
                 });
@@ -1992,7 +2011,7 @@ function getMACInfo_lease(station) {
             if (error) {
                 throw error;
             }
-            station.tstamp = tstamp.replace(/(\r\n\t|\n|\r\t)/gm,'');
+            station.tstamp = parseInt(tstamp.replace(/(\r\n\t|\n|\r\t)/gm,''));
             resolve(station);
         });
     });

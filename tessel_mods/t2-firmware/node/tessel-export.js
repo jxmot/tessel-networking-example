@@ -1892,20 +1892,8 @@ function getStations() {
                     let prom2 = [];
 // this will always be 1 even if empty
                     if(ifacemacs.length === 0) reject(new Error('mac length=0'));
-                    console.log(`0] ${JSON.stringify(ifacemacs[0])}`);
-                    console.log(`0] ${JSON.stringify(ifacemacs)}`);
-                    console.log(`1] typeof ${typeof ifacemacs}`);
-                    console.log(`2] typeof ${typeof ifacemacs[0]}`);
-                    
-                    // 
-                    // iface [
-                    //      {iface:"wlan0",list:[]},
-                    //      {iface:"wlanX",list:[]}
-                    // ]
                     ifacemacs.forEach((iface, iface_idx) => {
-                        console.log(`macs ${iface['mlist']}`);
                         iface['mlist'].forEach((mac, index) => {
-                            console.log(`1 typeof ${typeof mac}  ${index}`);
                             prom2.push(getMACInfo(ifacemacs[iface_idx].iface, mac));
                         });
                     });
@@ -1943,9 +1931,6 @@ function getMACsFromNetIF(netif) {
                 throw error;
             }
             let maclist = (_maclist.trim() !== '') ? _maclist.split('\n').filter(function(el) {return el.length != 0}) : [];
-            console.log(`X  ${_maclist.trim() !== ''}`);
-            console.log(`X  ${_maclist}`);
-            console.log(`X  ${JSON.stringify(maclist)}`);
             let result = {
                 'iface': netif,
                 'mlist': maclist
@@ -1956,8 +1941,6 @@ function getMACsFromNetIF(netif) {
 };
 
 function getMACInfo(iface, mac) {
-    console.log(`2 iface ${iface}`);
-    console.log(`2 typeof ${typeof mac}`);
     let station = {};
     return new Promise((resolve,reject) => {
         if(mac !== '') {
@@ -1977,15 +1960,12 @@ function getMACInfo(iface, mac) {
 };
 
 function getMACInfo_ip(mac) {
-    console.log(`3 typeof ${typeof mac}`);
-    console.log(`3 ${JSON.stringify(mac)}`);
     let station = {};
     return new Promise(resolve => {
         cp.exec(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${mac} | cut -f 2 -s -d" "`, (error, ip) => {
             if (error) {
                 throw error;
             }
-            console.log(`4 typeof ${typeof mac}`);
             station.mac = mac.toString();
             station.ip = ip.replace(/(\r\n\t|\n|\r\t)/gm,'');
             resolve(station);

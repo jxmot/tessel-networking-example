@@ -1858,11 +1858,9 @@ class AP extends EventEmitter {
 
   // retrieve a list of attached stations.
   // Usage:
-  //    tessel.network.ap.stations('json');   // returns data via the 'stations' event
-  //    tessel.network.ap.stations('text');   // returns data via the 'stations' event
+  //    tessel.network.ap.stations();   // returns data via the 'stations' event
   // - OR - 
-  //    tessel.network.ap.stations('json', callback);
-  //    tessel.network.ap.stations('text', callback);
+  //    tessel.network.ap.stations(callback);
   //
   // Where :
   //    function callback(error, stations) {
@@ -1871,63 +1869,19 @@ class AP extends EventEmitter {
   //    };
   stations(callback) {
     callback = enforceCallback(callback);
-
-    geStations()
+    getStations()
     .then(result => {
-        console.log(`got ALL ${JSON.stringify(result)}`);
         emitAndCallback('stations', this, result, callback);
     })
-    .catch(error => {
-        reject(error);
-        emitErrorCallback(this, error, callback);
-    });
+    .catch(error => emitErrorCallback(this, error, callback));
   }
-
-/*
-  stations(type, callback) {
-    callback = enforceCallback(callback);
-
-    let stalist = [];
-    let station = {};
-    
-    let _ifaces = cp.execSync('iw dev | grep Interface | cut -f 2 -s -d" "').toString();
-    let ifaces = (_ifaces.trim() != '') ? _ifaces.split('\n').filter(function(el) {return el.length != 0}) : [];
-    
-    ifaces.forEach((netif, index) => {
-        let _maclist = cp.execSync(`iw dev ${netif} station dump | grep Station | cut -f 2 -s -d" "`).toString();
-        let maclist = (_maclist.trim() != '') ? _maclist.split('\n').filter(function(el) {return el.length != 0}) : [];
-    
-        maclist.forEach((mac, index) => {
-            station.mac = mac;
-            let ip = cp.execSync(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${station.mac} | cut -f 2 -s -d" "`).toString();
-            station.ip = ip.replace(/(\r\n\t|\n|\r\t)/gm,'');
-            let host = cp.execSync(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${station.mac} | cut -f 3 -s -d" "`).toString();
-            station.host = host.replace(/(\r\n\t|\n|\r\t)/gm,'');
-            let tstamp = cp.execSync(`cat /tmp/dhcp.leases | grep ${station.mac} | cut -f 1 -s -d" "`).toString();
-            station.tstamp = tstamp.replace(/(\r\n\t|\n|\r\t)/gm,'');
-            stalist.push(JSON.parse(JSON.stringify(station)));
-        });
-    });
-    emitAndCallback('stations', this, stalist, callback);
-*/
-/*
-    cp.exec(`/usr/local/bin/show_wifi_clients.sh ${type}`, (error, result) => {
-      if (error) {
-        throw error;
-      }
-      emitAndCallback('stations', this, JSON.parse(result), callback);
-    });
-*/
-//  }
-
 } // class AP extends EventEmitter
 
-function geStations() {
+function getStations() {
     var _stalist = [];
     return new Promise((resolve,reject) => {
         getNetIFs()
         .then(netifs => {
-            console.log(`netifs.length = ${netifs.length}`);
             if(netifs.length === 0) reject(new Error('netif length=0'));
             else {
                 let prom = [];
@@ -1936,9 +1890,13 @@ function geStations() {
                 });
                 Promise.all(prom).then(maclist => {
                     let prom2 = [];
-                    console.log(`maclist.length = ${maclist.length}`);
                     if(maclist.length === 0) reject(new Error('mac length=0'));
+                    console.log(`0] ${JSON.stringify(maclist[0])}`);
+                    console.log(`0] ${JSON.stringify(maclist)}`);
+                    console.log(`1] typeof ${typeof maclist}`);
+                    console.log(`2] typeof ${typeof maclist[0]}`);
                     maclist.forEach((mac, index) => {
+                        console.log(`1 typeof ${typeof mac}`);
                         prom2.push(getMACInfo(mac));
                     });
                     Promise.all(prom2).then(station => {
@@ -1962,7 +1920,6 @@ function getNetIFs() {
             // ifaces will contain all of the wireless interface names, typically
             // on the tessel it would just be "wlan0"
             let ifaces = (_ifaces.trim() != '') ? _ifaces.split('\n').filter(function(el) {return el.length != 0}) : [];
-            console.log(`ifaces = ${JSON.stringify(ifaces)}`);
             resolve(ifaces);
         });
     });
@@ -1975,24 +1932,21 @@ function getMACsFromNetIF(netif) {
                 throw error;
             }
             let maclist = (_maclist.trim() != '') ? _maclist.split('\n').filter(function(el) {return el.length != 0}) : [];
-            console.log(`maclist = ${JSON.stringify(maclist)}`);
+            console.log(`X  ${JSON.stringify(maclist)}`);
             resolve(maclist);
         });
     });
 };
 
 function getMACInfo(mac) {
+    console.log(`2 typeof ${typeof mac}`);
     let station = {};
-    console.log(`getMACInfo ${mac}`);
     return new Promise((resolve,reject) => {
         if(mac !== '') {
-            console.log(`getting ip with ${mac}`);
             getMACInfo_ip(mac)
             .then(station => {
-                console.log(`getting host with ${JSON.stringify(station)}`);
                 getMACInfo_host(station)
                 .then(station => {
-                    console.log(`getting lease with ${JSON.stringify(station)}`);
                     getMACInfo_lease(station)
                     .then(station => {
                         resolve(station);
@@ -2004,44 +1958,41 @@ function getMACInfo(mac) {
 };
 
 function getMACInfo_ip(mac) {
+    console.log(`3 typeof ${typeof mac}`);
+    console.log(`3 ${JSON.stringify(mac)}`);
     let station = {};
     return new Promise(resolve => {
         cp.exec(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${mac} | cut -f 2 -s -d" "`, (error, ip) => {
             if (error) {
                 throw error;
             }
+            console.log(`4 typeof ${typeof mac}`);
             station.mac = mac.toString();
             station.ip = ip.replace(/(\r\n\t|\n|\r\t)/gm,'');
-            console.log(`getMACInfo_ip mac = ${station.mac}    ip = ${station.ip}`);
             resolve(station);
         });
     });
 };
 
 function getMACInfo_host(station) {
-    console.log(`getMACInfo_host ${station.mac}`);
     return new Promise(resolve => {
         cp.exec(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${station.mac} | cut -f 3 -s -d" "`, (error, host) => {
             if (error) {
-                console.log(`getMACInfo_host error = ${error}`);
                 throw error;
             }
             station.host = host.replace(/(\r\n\t|\n|\r\t)/gm,'');
-            console.log(`mac = ${station.mac}    ip = ${station.ip}    host = ${station.host}`);
             resolve(station);
         });
     });
 };
 
 function getMACInfo_lease(station) {
-    console.log(`getMACInfo_lease ${station.mac}`);
     return new Promise(resolve => {
         cp.exec(`cat /tmp/dhcp.leases | grep ${station.mac} | cut -f 1 -s -d" "`, (error, tstamp) => {
             if (error) {
                 throw error;
             }
             station.tstamp = tstamp.replace(/(\r\n\t|\n|\r\t)/gm,'');
-            console.log(`mac = ${station.mac}    ip = ${station.ip}    host = ${station.host}    tstamp = ${station.tstamp}`);
             resolve(station);
         });
     });

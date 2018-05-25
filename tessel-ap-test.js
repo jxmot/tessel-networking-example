@@ -52,7 +52,7 @@ process.on('SIGBREAK', () => {
 //
 // When either of the following are 'true' then the SSID or WiFi channel
 // will be randomly different each time the application is started.
-const ssidrand = true;
+const ssidrand = false;
 const chanrand = true;
 
 function getRandomInt(max,min) {
@@ -210,12 +210,7 @@ function tesselAPinit() {
             // set the channel
             console.log('setting AP channel '+apconfig.channel+' now...\n');
             tessel.network.wifi.setChannel(apconfig, (error, result) => {
-// NOTE: swap the commenting on the "set" with "get" to
-// see either of them work.
-            // get the current channel
-//            console.log('getting AP channel now...\n');
-//            tessel.network.wifi.getChannel((error, result) => {
-                if(error) console.log('ERROR - wifi.getChannel\n');
+                if(error) console.log('ERROR - wifi.setChannel\n');
                 else {
                     console.log('AP channel = '+result);
                     console.log('creating AP now...\n');
@@ -285,8 +280,8 @@ function getNetIF() {
 
 // retrieve a list of connected stations
 function getStations() {
-    if(stations_event === true) tessel.network.ap.stations('json');
-    else tessel.network.ap.stations('json', cb_getStations);
+    if(stations_event === true) tessel.network.ap.stations();
+    else tessel.network.ap.stations(cb_getStations);
 };
 
 // callback for tessel.network.ap.stations()

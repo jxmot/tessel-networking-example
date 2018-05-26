@@ -8,10 +8,6 @@ const mimetyp = require('./mimetypes.js');
 
 module.exports = httpsrv;
 
-httpsrv.test = function() {
-    console.log('test!!!');
-};
-
 httpsrv.mime = function(pathname) {
     return mimetyp.types[path.parse(pathname).ext];
 };
@@ -22,6 +18,8 @@ httpsrv.mimetype = function(ext) {
 
 function httpsrv(ipaddr, port, _docroot, userPaths) {
 
+    // create a "document root" for this particular
+    // instance of the server.
     let docroot = 'www';
     if(_docroot !== undefined) {
         docroot = _docroot;

@@ -144,13 +144,30 @@ if(stations_event === true) {
     // added or removed.
     tessel.network.ap.on('stations', (stations) => {
         // `stations` is an array of connected stations.
-        if(laststations !== stations.length) {
+//        if(laststations !== stations.length) {
+        let tmp = 0;
+        if(laststations !== (tmp = checksum(JSON.stringify(stations)))) {
             console.log(`\nevent stations = ${JSON.stringify(stations)}\n`);
-            laststations = stations.length;
+//            laststations = stations.length;
+            laststations = tmp;
             stationlist = JSON.parse(JSON.stringify(stations));
         }
     });
 }
+
+/*
+    Checksum - creates a checksum for a string and returns
+    the checksum value in a string.
+    Originally found at - https://stackoverflow.com/a/3276730/6768046
+*/
+function checksum(s)
+{
+    var chk = 0x5F378EA8;
+    var len = s.length;
+    for (var i = 0; i < len; i++) chk += (s.charCodeAt(i) * (i + 1));
+//    return (chk & 0xffffffff).toString(16);
+    return (chk & 0xffffffff);
+};
 
 //////////////////////////////////////////////////////////////////////////////
 // Tessel Network Event Handlers
@@ -287,9 +304,12 @@ function getStations() {
 // callback for tessel.network.ap.stations()
 function cb_getStations(error, stations) {
     if(!error) {
-        console.log(`\ncallback stations = ${JSON.stringify(stations)}\n`);
-        laststations = stations.length;
-        stationlist = JSON.parse(JSON.stringify(stations));
+        let tmp = 0;
+        if(laststations !== (tmp = checksum(JSON.stringify(stations)))) {
+            console.log(`\ncallback stations = ${JSON.stringify(stations)}\n`);
+            laststations = tmp;
+            stationlist = JSON.parse(JSON.stringify(stations));
+        }
     } else console.log('callback ERROR');
 };
 

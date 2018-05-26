@@ -1,5 +1,30 @@
 'use strict';
+/*
+    tessel-ap-test.js - An application for testing how the 
+    Tessel 2 network API works, and for the development and
+    testing of new network API functions.
 
+    This application when ran will - 
+
+        * Blink the user LEDs
+        * Start the access point 
+        * Scan for connected WiFi stations and report them
+          when first seen
+        * Start two http servers, one on WiFi and the other
+          on the ethernet connection. Wifi is "client" and
+          ethernet is "admin"
+        * Wait for termination signals, and when one occurs
+          the access point is turned off and the LEDs stop
+          blinking
+
+    Current new network API functions are - 
+
+        * get current wifi channel number
+        * change current wifi channel number
+        * get currently connected AP stations
+
+    (c) 2018 j.motyl - https://github.com/jxmot
+*/
 // provide access to os.networkInterfaces()
 const os = require('os');
 
@@ -277,7 +302,8 @@ function getNetIF() {
                 // mark it as ready if successful
                 apip = getIPv4('wlan0');
                 apready = ((apip !== undefined) ? true : false);
-
+//event??? apready
+//handler???
                 // retrieve the IP and MAC for the wired interface
                 ethip = getIPv4('eth0');
 
@@ -291,6 +317,7 @@ function getNetIF() {
                 // start scanning for connected stations
                 console.log('\nstation scan started...\n');
                 stationsintrvl = setInterval(getStations, 5000);
+//^handler???
             } 
         } else netIFcount += 1;
     }

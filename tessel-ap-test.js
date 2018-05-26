@@ -144,11 +144,9 @@ if(stations_event === true) {
     // added or removed.
     tessel.network.ap.on('stations', (stations) => {
         // `stations` is an array of connected stations.
-//        if(laststations !== stations.length) {
         let tmp = 0;
         if(laststations !== (tmp = checksum(JSON.stringify(stations)))) {
             console.log(`\nevent stations = ${JSON.stringify(stations)}\n`);
-//            laststations = stations.length;
             laststations = tmp;
             stationlist = JSON.parse(JSON.stringify(stations));
         }
@@ -159,14 +157,16 @@ if(stations_event === true) {
     Checksum - creates a checksum for a string and returns
     the checksum value in a string.
     Originally found at - https://stackoverflow.com/a/3276730/6768046
+
+    And modified by - https://github.com/jxmot
 */
-function checksum(s)
+function checksum(s, type = 'i')
 {
     var chk = 0x5F378EA8;
     var len = s.length;
     for (var i = 0; i < len; i++) chk += (s.charCodeAt(i) * (i + 1));
-//    return (chk & 0xffffffff).toString(16);
-    return (chk & 0xffffffff);
+    if(type === 's') return (chk & 0xffffffff).toString(16);
+    else return (chk & 0xffffffff);
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -256,10 +256,10 @@ function getNetIF() {
     // interfaces and the eventual appearance of the 
     // desired "wlan0" IPv4 interface - 
     //console.log(JSON.stringify(netif, null, 4));
-    console.log('\n\n');
 
-    // the presence of the "wlan0" interface does not mean 
-    // that the AP is ready. The first one to appear is IPv6
+    // the presence of the "wlan0" interface does not indicate 
+    // that the AP is ready. The first one to appear is IPv6, it
+    // works that way on a Tessel 2.
     if(netif['wlan0'] === undefined) {
         netIFcount += 1;
     } else {
@@ -268,23 +268,22 @@ function getNetIF() {
         if(netif['wlan0'].length > 1) {
             // it's likely that the IPv4 has appeared...
             if(netIFid != undefined) {
-                // stop the interval timer...
+                // so let's stop scanning the network interfaces...
                 clearInterval(netIFid);
-                // and show the interface we need for the AP
-                console.log('wlan0 AP is ready - \n');
-// NOTE: verify if netif['wlan0'][0] will ALWAYS be 'IPv4'
-                console.log(JSON.stringify(netif['wlan0'][0], null, 4));
 
                 // retrieve the IP and MAC for the access point(wlan0) and
                 // mark it as ready if successful
                 apip = getIPv4('wlan0');
                 apready = ((apip !== undefined) ? true : false);
-                // retrieve the IP and MAC for the other interface
+
+                // retrieve the IP and MAC for the wired interface
                 ethip = getIPv4('eth0');
 
+                // are the http servers enabled?
                 if(httpenable === true) {
                     // start an http server on the access point address
-                    (apready === true ? http_wlan = new httpsrv(apip.ip, 80, 'www', adminAPI) : console.log('httpuser not started'));
+                    (apready === true ? http_wlan = new httpsrv(apip.ip, 80, 'www', adminAPI) : console.log('http_wlan not started'));
+                    // start an http server on the wired interface address
                     http_eth = new httpsrv(ethip.ip, 80, 'wwwadmin', adminAPI);
                 }
                 // start scanning for connected stations
@@ -326,8 +325,10 @@ function getIPv4(_iface) {
         if(netif[iface] !== undefined) {
             for(let ix = 0;ix < netif[iface].length;ix++) {
                 if(netif[iface][ix]['family'] === 'IPv4') {
-                    addrinfo.ip = netif[iface][ix]['address'];
+                    addrinfo.ip  = netif[iface][ix]['address'];
                     addrinfo.mac = netif[iface][ix]['mac'];
+                    console.log(`getIPv4(${iface}) - `);
+                    console.log(JSON.stringify(netif[iface][ix], null, 4));
                     break;
                 }
             }

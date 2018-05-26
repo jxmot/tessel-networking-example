@@ -241,7 +241,9 @@ function tesselAPinit() {
 
 // clean up on exit...
 function tesselAPcleanup() {
+    // stop scanning for stations
     clearInterval(stationsintrvl);
+    // stop the blinkin' LEDs
     clearInterval(blinkintrvl);
     // the event handler will complete the cleanup
     tessel.network.ap.disable();
@@ -296,6 +298,8 @@ function getNetIF() {
 
 // retrieve a list of connected stations
 function getStations() {
+    // can choose one of two notification methods, 
+    // a callback function or an event
     if(stations_event === true) tessel.network.ap.stations();
     else tessel.network.ap.stations(cb_getStations);
 };
@@ -318,11 +322,15 @@ function getIPv4(_iface) {
         ip: '',
         mac: ''
     };
-
+    // make sure it's a valid interface
     let iface = ((_iface.toLowerCase() === 'wlan0' || _iface.toLowerCase() === 'eth0') ? _iface.toLowerCase() : 'UNKNWN');
     if(iface !== 'UNKNWN') {
+        // it's good, ask for the list of current interfaces
         let netif = os.networkInterfaces();
+        // are there any?
         if(netif[iface] !== undefined) {
+            // yes, step through the interface and find the ipv4 
+            // information
             for(let ix = 0;ix < netif[iface].length;ix++) {
                 if(netif[iface][ix]['family'] === 'IPv4') {
                     addrinfo.ip  = netif[iface][ix]['address'];
@@ -337,6 +345,8 @@ function getIPv4(_iface) {
     return addrinfo;
 };
 
+// Custom path handling for the http server
+//
 // passed to httpserver.init(), where it is called
 // and expected to return either -
 //      'false' = response not sent
@@ -345,6 +355,7 @@ function adminAPI(reqpath, req, res, server) {
     let bRet = false;
     if(reqpath.includes('/info/') === true) {
         switch(reqpath) {
+            // return the requestor's IP address
             case '/info/ip' :
                 res.statusCode = 200;
                 let ipx = req.headers["x-forwarded-for"];
@@ -356,6 +367,7 @@ function adminAPI(reqpath, req, res, server) {
                 bRet = true;
                 break;
 
+            // respond with a list of attached WiFi stations
             case '/info/stations':
                 res.statusCode = 200;
                 console.log(server.mimetype('.json'));

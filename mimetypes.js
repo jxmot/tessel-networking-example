@@ -1,6 +1,7 @@
 module.exports = (() => {
     var mime = {
         types : {
+            '.txt': 'text/plain',
             '.html': 'text/html',
             '.ico': 'image/x-icon',
             '.css': 'text/css',

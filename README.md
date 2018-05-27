@@ -1,20 +1,27 @@
 # Tessel 2 Networking
 
-**NOTE : This document is a "work-in-progress". It is likely to change, when this message is no longer present this document can be considered ready for use.**
-
 This repository contains a networking application for the Tessel 2.
 
 # Purpose
 
 The *basic* intended purposes are - 
 
-* Enable an access point and allow clients to connect to it and provide them with an IP address 
+* Enable an access point and allow stations to connect, and then provide them with an IP address 
 * Use the Ethernet interface to obtain an IP address via DHCP
 * Characterize the behavior of the AP when enabling or disabling programmatically
 * Investigate the Tessel's network API and its usage 
-* Test modifications to the Tessel's access point API
+* Test modifications to the Tessel's access point API. Current modifications are -
+  * Get/Change WIFi channel
+  * Get a list of connected stations
 
 At this time routing traffic between the Wifi interface and the Ethernet interface is not required. This will be addressed in a separate application and accompanying documentation.
+
+## *Some* Potential Uses
+
+* IoT gateway
+* Low power, portable access point
+* WiFi Honeypot
+* *TBD*
 
 # Tessel 2 Development Environment
 
@@ -24,20 +31,194 @@ Hosted on Windows 10 64bit with Node.js 6.10.2.
 
 * t2-cli: 0.1.8
 * t2-firmware: 0.1.0
+  * OpenWRT: ? 
 * Node.js: 6.10.3
 
 ## Tessel 2 Network Connections
 
-The Ethernet port is connected to a LAN/router and will obtain an IP address via DHCP. The wireless interface will act as a DHCP server and provide IP addresses to connected stations.
+The Ethernet port is connected to a LAN/router and will obtain an IP address via DHCP. The wireless interface will act as an access point and as a DHCP server to connected stations.
 
-### Access Point Set Up
+<p align="center">
+  <img src="./mdimg/hw-overview-485x462.jpg" alt="Application Initialize flow chart" txt="Application Initialize flow chart" width="50%">
+</p>
 
-There are two methods for setting up the Tessel's access point - 
+# Running the Application
 
-* **CLI** : `t2 ap -n SSID -p password -s pk2`
-* **Programmatically** : See [`tessel-ap-test.js`](./tessel-ap-test.js) for details
+In order to use the application it is necessary to update the Tessel 2 firmware. There is a single JavaScript file that contains entire Tessel 2 API.  
 
-For the purpose of this document and the application **programmatic** methods will be used.
+## Initial Steps
+
+Go to the [Tessel 2 Documentation](https://tessel.github.io/t2-start/) and follow the steps up through "Blinky".
+
+The procedure below uses the `scp` command which is not available in any Windows version. So if you are running on Windows you will need to do one of the following - 
+
+* Use the Git Bash shell. If you've installed Git on your Windows machine there's a chance you will have it. Typically it installs a Windows Explorer context menu item. If you right-click on a folder you should see "Git Bash Here" in the menu. If you do, you're all set.
+* Install a Windows `scp` program. 
+* _TBD_
+
+## Update the Tessel 2 Firmware
+
+1) **_Clone_** this repository, please do not fork unless you're contributing.
+2) Open a command line window using your chosen shell in your copy of this repository.
+3) Navigate to the `tessel_mods/t2-firmware/node` folder.
+4) Type in the following command - 
+
+`# scp -i ~/.tessel/id_rsa ./tessel-export.js root@YOUR_TESSEL:/usr/lib/node`
+
+Where : `YOUR_TESSEL` identifies the Tessel that you're using. It can be the Tessel's IP address, or in _some_ cases it can be the name you gave it when following the official Tessel documentation.
+
+5) Run the command, the copy should be successful.
+
+## Download and Run
+
+After successfully copying the updated `tessel-export.js` file to your Tessel just run this application like any other - 
+
+`# t2 run tessel-ap-test.js`
+
+## Application Output
+
+```
+INFO Looking for your Tessel...
+INFO Connected to Tessel-02A30CB079FF.
+INFO Building project.
+INFO Writing project to RAM on Tessel-02A30CB079FF (72.192 kB)...
+INFO Deployed.
+INFO Running tessel-ap-test.js...
+I'm blinking! (Press CTRL + C to quit and shutdown the AP)
+
+
+
+wifi disconnect
+SUCCESS - wifi.disable
+setting AP channel 2 now...
+
+wifi new channel = 2
+AP channel = 2
+creating AP now...
+
+SUCCESS - AP created :
+{
+    "ssid": "TESSEL_TEST",
+    "password": "12341234$",
+    "security": "psk2",
+    "channel": 2,
+    "ip": "192.168.1.101"
+}
+enabling AP now...
+
+AP enable event
+
+getNetIF() looking for wlan0 - #0
+```
+
+### Waiting for wlan0
+
+```
+getNetIF() looking for wlan0 - #1
+getNetIF() looking for wlan0 - #2
+getNetIF() looking for wlan0 - #3
+```
+
+### Collect wlan0 and eth0 Information
+
+```
+getIPv4(wlan0) -
+{
+    "address": "192.168.1.101",
+    "netmask": "255.255.255.0",
+    "family": "IPv4",
+    "mac": "01:a3:0c:bb:dd:ff",
+    "internal": false
+}
+getIPv4(eth0) -
+{
+    "address": "192.168.0.26",
+    "netmask": "255.255.255.0",
+    "family": "IPv4",
+    "mac": "01:a3:0c:bb:dd:ff",
+    "internal": false
+}
+```
+
+### Start the HTTP Servers and Scan for Stations
+
+```
+httpsrv : starting up http server on 192.168.1.101:80 /tmp/remote-script/public/www
+httpsrv : starting up http server on 192.168.0.26:80 /tmp/remote-script/public/wwwadmin
+
+station scan started...
+
+httpsrv : server is listening on 192.168.1.101:80
+httpsrv : server is listening on 192.168.0.26:80
+
+event stations = []
+```
+
+### Terminate the Application
+
+```
+^C
+Caught interrupt signal
+
+AP disable event
+```
+
+### Connected Stations
+
+```json
+event stations = [{"mac":"42:77:e8:49:59:a3","ip":"192.168.1.189","host":"SOME_HOSTNAME","tstamp":1527411135,"iface":"wlan0"}]
+```
+
+<hr>
+
+## HTTP Servers
+
+There are two http servers in the application. One will be considered as an *administration* portal and the other is for access point clients. 
+
+### Folder Hierarchy
+
+```
+\ ------+
+        |
+        +- public --+-- 404.html
+                    |
+                    +-- assets ---+
+                    |             |
+                    |             + css -- 404.css
+                    |
+                    +-- www ------+-- index.html, favicon.ico
+                    |             |
+                    |             +-- assets -+
+                    |                         + img -- tessel.png 
+                    |
+                    +-- wwwadmin -+-- index.html, favicon.ico
+                                  |
+                                  +-- assets -+
+                                              + css -- index.css 
+                                              |
+                                              + img -- tessel.png 
+```
+
+### Admin API
+
+The following paths are available - 
+
+* `GET /info/ip` - return the web client's IP address
+* `GET /info/stations` - return the list currently connected AP stations
+
+
+
+
+
+
+
+
+
+<hr>
+
+
+
+
 
 ### Access Point Characteristics
 
@@ -134,43 +315,32 @@ In order to modify the
 
 [The UCI System](https://openwrt.org/docs/guide-user/base-system/uci)
 
-## Unknowns
 
-At this time I do not know if there are any OpenWRT configurable items that will affect the behavior seen in the programmatic configuration of the Tessel access point.
 
-<hr>
 
-# Tessel Network API Questions
+# Tessel 2 Network API Modifications
 
-Here are some questions that were asked in regards to the Tessel 2 Network API. As I obtain answers and test the results this section will be updated.
 
-**Q** : Does the API provide any events when a station connects to the access point?
+The following has been added - 
 
-**A** : Not at this time. However I am investigating the possibility of adding such events.
+* Get/Set the WiFi channel
+* Request a list of stations connected to the access point
 
-**Notes** : I have found a possible solution, there are CLI commands that will return information that shows connected stations. If there is no "built in" event I can use then I'll create a function in `tessel-export.js` that retrieves the necessary info and repackages it as needed. It will be up to the Tessel application code to perform periodic "reads" and make determine if a new station was added, or if an existing one has disconnected.
 
-<br>
 
-**Q** : 
 
-**A** : 
 
-<br>
 
-**Q** : 
 
-**A** : 
 
-<br>
-<hr>
 
-# Tessel 2 Network API Modification Proposals
+
+
 
 * **Access Point** :
     * Provide the ability to programmatically configure -
         * AP IP address
-        * AP Channel number
+        * AP Channel number <- complete
         * DHCP lease duration
         * Maximum *allowed* quantity of connected stations
     * New events - 

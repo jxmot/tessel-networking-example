@@ -43,7 +43,7 @@ var blinkintrvl = setInterval(() => {
   tessel.led[3].toggle();
 }, 500);
 
-console.log("I'm blinking! (Press CTRL + C to stop)\n\n\n");
+console.log("I'm blinking! (Press CTRL + C to quit and shutdown the AP)\n\n\n");
 
 //////////////////////////////////////////////////////////////////////////////
 // Process Signal Handlers

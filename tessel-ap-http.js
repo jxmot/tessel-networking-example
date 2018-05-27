@@ -1,21 +1,36 @@
 'use strict';
+/*
+    tessel-ap-http.js - Can be instantiated to create an 
+    HTTP server that listens on a specified IP address,
+    port, and can optionally call a client supplied
+    function for managing application specific requests.
 
+    (c) 2018 j.motyl - https://github.com/jxmot
+*/
+// all the necessary stuff...
 const http = require('http');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
+
+// file extension to mime type table
 const mimetyp = require('./mimetypes.js');
 
 module.exports = httpsrv;
 
+// returns the mime type for a file with
+// a path
 httpsrv.mime = function(pathname) {
     return mimetyp.types[path.parse(pathname).ext];
 };
 
+// returns the mime type for a specific
+// file extension
 httpsrv.mimetype = function(ext) {
     return mimetyp.types[ext];
 };
 
+// create the object...
 function httpsrv(ipaddr, port, _docroot, userPaths) {
 
     // create a "document root" for this particular

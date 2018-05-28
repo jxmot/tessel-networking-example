@@ -1890,7 +1890,7 @@ function getStations() {
                 });
                 Promise.all(prom).then(ifacemacs => {
                     let prom2 = [];
-// this will always be 1 even if empty
+                    // this will always be 1 even if empty
                     if(ifacemacs.length === 0) reject(new Error('ifacemacs length=0'));
                     ifacemacs.forEach((iface, iface_idx) => {
                         iface['mlist'].forEach((mac, index) => {

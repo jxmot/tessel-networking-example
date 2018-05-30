@@ -7,6 +7,7 @@ This repository contains a networking application for the Tessel 2.
 The *basic* intended purposes are - 
 
 * Enable an access point and allow stations to connect, and then provide them with an IP address 
+* Disable the Tessel's WiFi station
 * Use the Ethernet interface to obtain an IP address via DHCP
 * Characterize the behavior of the AP when enabling or disabling programmatically
 * Investigate the Tessel's network API and its usage 
@@ -79,24 +80,22 @@ After successfully copying the updated `tessel-export.js` file to your Tessel ju
 
 ```
 INFO Looking for your Tessel...
-INFO Connected to Tessel-02A30CB079FF.
+INFO Connected to Tessel-01A30CBBDDFF.
 INFO Building project.
-INFO Writing project to RAM on Tessel-02A30CB079FF (72.192 kB)...
+INFO Writing project to RAM on Tessel-01A30CBBDDFF (72.192 kB)...
 INFO Deployed.
 INFO Running tessel-ap-test.js...
 I'm blinking! (Press CTRL + C to quit and shutdown the AP)
 
 
 
-wifi disconnect
-SUCCESS - wifi.disable
+wifi.disable callback - SUCCESS
 setting AP channel 2 now...
 
-wifi new channel = 2
 AP channel = 2
 creating AP now...
 
-SUCCESS - AP created :
+ap.create event - created :
 {
     "ssid": "TESSEL_TEST",
     "password": "12341234$",
@@ -104,9 +103,9 @@ SUCCESS - AP created :
     "channel": 2,
     "ip": "192.168.1.101"
 }
-enabling AP now...
+ap.create event - enabling AP now...
 
-AP enable event
+ap.enable event - enabled
 
 getNetIF() looking for wlan0 - #0
 ```
@@ -154,22 +153,70 @@ httpsrv : server is listening on 192.168.0.26:80
 event stations = []
 ```
 
-### Terminate the Application
-
-```
-^C
-Caught interrupt signal
-
-AP disable event
-```
-
 ### Connected Stations
 
 ```json
 event stations = [{"mac":"42:77:e8:49:59:a3","ip":"192.168.1.189","host":"SOME_HOSTNAME","tstamp":1527411135,"iface":"wlan0"}]
 ```
 
+### Terminating the Application
+
+```
+^C
+Caught interrupt signal
+
+ap.disable event - disabled
+```
+
 <hr>
+
+### Options
+
+**Random SSID and Channel** : Choose if the SSID or the WiFi channel are random each time the application is started.
+
+```javascript
+// Random SSID & WiFi Channel
+//
+// Each time the application is started and when either of the following 
+// are 'true' then the SSID or WiFi channel will be somewhat randomized.
+// The channel will range from 1 through 11, and the random ssid will be
+// from "TEMP_0000" through "TEMP_5000".
+const ssidrand = false;
+const chanrand = true;
+
+const MIN_WIFI_CHAN = 1;
+const MAX_WIFI_CHAN = 11;
+
+const MIN_SSID_NUMB = 0;
+const MAX_SSID_NUMB = 5000;
+
+// when random is off use these
+const ssid = 'TESSEL_TEST';
+const chan = 8;
+// when the ssid is random this first half of the ssid.
+const rssid = 'TEMP_';
+// get the ssid and wifi channel for this session
+const apssid = (ssidrand === true ? (`${rssid}${('0000'+getRandomInt(5000,0)).slice(-4)}`) : ssid);
+const apchann = (chanrand === true ? getRandomInt(MAX_WIFI_CHAN,MIN_WIFI_CHAN) : chan);
+
+function getRandomInt(max,min) {
+    return Math.floor(Math.random() * (max - min) + min);
+};
+```
+
+**Optional HTTP Servers** : Choose if two HTTP servers are started, one on the access point's IP address and another on the Ethernet IP address.
+
+```javascript
+// When the following is 'true' there will be two HTTP servers started. One
+// will listen on the IP assigned to wlan0 and the other is on eth0.
+const httpenable = true;
+```
+
+**Muting Output** :
+
+```javascript
+
+```
 
 ## HTTP Servers
 
@@ -186,10 +233,12 @@ There are two http servers in the application. One will be considered as an *adm
                     |             |
                     |             + css -- 404.css
                     |
+                    |
                     +-- www ------+-- index.html, favicon.ico
                     |             |
                     |             +-- assets -+
                     |                         + img -- tessel.png 
+                    |
                     |
                     +-- wwwadmin -+-- index.html, favicon.ico
                                   |
@@ -199,17 +248,23 @@ There are two http servers in the application. One will be considered as an *adm
                                               + img -- tessel.png 
 ```
 
+
+
 ### Admin API
 
-The following paths are available - 
+The following endpoints are available - 
 
 * `GET /info/ip` - return the web client's IP address
-* `GET /info/stations` - return the list currently connected AP stations
+* `GET /info/stations` - return the list of currently connected AP stations
+
+Both requests respond with JSON formatted strings.
+
+
+# Design Details
 
 
 
-
-
+# Tessel Modification Details
 
 
 

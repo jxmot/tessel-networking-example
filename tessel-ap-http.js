@@ -16,6 +16,12 @@ const fs = require('fs');
 // file extension to mime type table
 const mimetyp = require('./mimetypes.js');
 
+// Unmute/mute console output.
+const _con = require('./consolelog.js');
+const con = new _con();
+
+//////////////////////////////////////////////////////////////////////////////
+// HTTP Server Module
 module.exports = httpsrv;
 
 // returns the mime type for a file with
@@ -43,17 +49,17 @@ function httpsrv(ipaddr, port, _docroot, userPaths) {
     const wwwpath = path.join(path.join(__dirname,'public'), docroot);
     const wwwcomm = path.join(__dirname,'public');
 
-    console.log(`httpsrv : starting up http server on ${ipaddr}:${port} ${wwwpath}`);
+    con.log(`httpsrv : starting up http server on ${ipaddr}:${port} ${wwwpath}`);
 
     // Create the server, and wait for a connection....
     const serverhttp = http.createServer();
 
     serverhttp.on('listening', () => {
-        console.log(`httpsrv : server is listening on ${ipaddr}:${port}`);
+        con.trace(`httpsrv : server is listening on ${ipaddr}:${port}`);
     });
 
     serverhttp.on('error', (err) => {
-        console.log(err);
+        console.error(err);
     });
 
     serverhttp.listen(port, ipaddr);
@@ -61,7 +67,7 @@ function httpsrv(ipaddr, port, _docroot, userPaths) {
     serverhttp.on('request',(req, res) => {
         let bRet = false;
 
-        console.log(`httpsrv : ${req.method} ${req.url}`);
+        con.trace(`httpsrv : ${ipaddr} ${req.method} ${req.url}`);
 
         const reqpath = url.parse(req.url).pathname;
 
@@ -69,33 +75,32 @@ function httpsrv(ipaddr, port, _docroot, userPaths) {
 
         if(bRet === false) {
             if(req.method == 'GET') {
-                servePath(req, res, wwwpath);
+                servePath(req, res, wwwpath, wwwcomm);
             } // else POST, DEL, PATCH, etc
         }
     });
 };
 
-
-function servePath(req, res, wwwpath) {
+function servePath(req, res, wwwpath, wwwcomm) {
 
     let pathname = path.join(wwwpath, url.parse(req.url).pathname);
 
     fs.exists(pathname, (exist) => {
         if(!exist) {
             if(pathname.includes('favicon.ico') === true) {
-                console.log('httpsrv.servePath() : favicon.ico request, responding with 204');
+                con.log('httpsrv.servePath() : favicon.ico request, responding with 204');
                 res.status(204).send('/favicon.ico does not exist');
                 res.end();
             } else {
                 if(pathname.includes('404.css') === true) {
-                    serveFile(path.join(path.join(__dirname,'public'), '/assets/css/404.css'), res);
+                    serveFile(path.join(wwwcomm, '/assets/css/404.css'), res);
                 } else {
                     res.statusCode = 404;
-                    console.log(`httpsrv.servePath() : File ${pathname} not found!`);
-                    serveFile(path.join(path.join(__dirname,'public'), '404.html'), res);
+                    con.log(`httpsrv.servePath() : File ${pathname} not found!`);
+                    serveFile(path.join(wwwcomm, '404.html'), res);
                 }
             }
-         } else {
+        } else {
             if (fs.statSync(pathname).isDirectory()) {
                 pathname = path.join(pathname, 'index.html');
             }
@@ -105,7 +110,7 @@ function servePath(req, res, wwwpath) {
 };
 
 function serveFile(pathname, res) {
-    console.log('serveFile - '+pathname);
+    con.log('serveFile - '+pathname);
     fs.readFile(pathname, (err, data) => {
         if(err){
             res.statusCode = 500;

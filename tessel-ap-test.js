@@ -45,6 +45,12 @@ var blinkintrvl = setInterval(() => {
 
 console.log("I'm blinking! (Press CTRL + C to quit and shutdown the AP)\n\n\n");
 
+// Unmute/mute console output.
+const _con = require('./consolelog.js');
+// decide if con.log() or con.trace() will
+// produce output
+const con = new _con(true, true);
+
 //////////////////////////////////////////////////////////////////////////////
 // Process Signal Handlers
 //
@@ -58,40 +64,48 @@ console.log("I'm blinking! (Press CTRL + C to quit and shutdown the AP)\n\n\n");
 // application exit.
 
 process.on('SIGINT', () => {
-    console.log('\nCaught interrupt signal\n');
+    con.trace('\nCaught interrupt signal\n');
     tesselAPcleanup();
 });
 
 process.on('SIGTERM', () => {
-    console.log('\nCaught terminate signal\n');
+    con.trace('\nCaught terminate signal\n');
     tesselAPcleanup();
 });
 
 process.on('SIGBREAK', () => {
-    console.log('\nCaught break signal\n');
+    con.trace('\nCaught break signal\n');
     tesselAPcleanup();
 });
 
 //////////////////////////////////////////////////////////////////////////////
 // Random SSID & WiFi Channel
 //
-// When either of the following are 'true' then the SSID or WiFi channel
-// will be randomly different each time the application is started.
+// Each time the application is started and when either of the following 
+// are 'true' then the SSID or WiFi channel will be somewhat randomized.
+// The channel will range from 1 through 11, and the random ssid will be
+// from "TEMP_0000" through "TEMP_5000".
 const ssidrand = false;
 const chanrand = true;
 
-function getRandomInt(max,min) {
-    return Math.floor(Math.random() * (max - min) + min);
-};
+const MIN_WIFI_CHAN = 1;
+const MAX_WIFI_CHAN = 11;
+
+const MIN_SSID_NUMB = 0;
+const MAX_SSID_NUMB = 5000;
 
 // when random is off use these
 const ssid = 'TESSEL_TEST';
 const chan = 8;
-// when the ssid is random this becomes part of it.
-const rssid = 'YO_';
+// when the ssid is random this first half of the ssid.
+const rssid = 'TEMP_';
 // get the ssid and wifi channel for this session
 const apssid = (ssidrand === true ? (`${rssid}${('0000'+getRandomInt(5000,0)).slice(-4)}`) : ssid);
-const apchann = (chanrand === true ? getRandomInt(11,1) : chan);
+const apchann = (chanrand === true ? getRandomInt(MAX_WIFI_CHAN,MIN_WIFI_CHAN) : chan);
+
+function getRandomInt(max,min) {
+    return Math.floor(Math.random() * (max - min) + min);
+};
 
 //////////////////////////////////////////////////////////////////////////////
 // Access Point Configuration
@@ -110,6 +124,12 @@ var apip = '';
 var apready = false;
 // ethernet address (eth0)
 var ethip = '';
+
+//////////////////////////////////////////////////////////////////////////////
+// Miscellaneous application settings
+
+// true = enable Tessel wifi events, for demonstration purposes
+var show_wifievents = false;
 
 //////////////////////////////////////////////////////////////////////////////
 // Optional HTTP Servers
@@ -146,21 +166,29 @@ var stationlist = {};
 
 //////////////////////////////////////////////////////////////////////////////
 // Tessel network event handlers
+//
 tessel.network.wifi.on('error', () => {
-    console.log('ERROR - wifi');
+    console.error('network.wifi event - ERROR');
 });
 
-tessel.network.wifi.on('disconnect', () => {
-    console.log('wifi disconnect');
-});
-
-tessel.network.wifi.on('getchannel', (error, channel) => {
-    console.log(`wifi current channel = ${channel}`);
-});
-
-tessel.network.wifi.on('setchannel', (channel) => {
-    console.log(`wifi new channel = ${channel}`);
-});
+if(show_wifievents === true) {
+    // In this application the Tessel wifi and ap 
+    // events & callbacks are used. This was done
+    // in order to see when the events occurred in 
+    // relationship to when the callback functions
+    // are called.
+    tessel.network.wifi.on('disconnect', () => {
+        console.log('wifi.disconnect event - disconnected');
+    });
+    
+    tessel.network.wifi.on('getchannel', (error, channel) => {
+        console.log(`wifi.getchannel event - channel = ${channel}`);
+    });
+    
+    tessel.network.wifi.on('setchannel', (channel) => {
+        console.log(`wifi.setchannel event - channel = ${channel}`);
+    });
+}
 
 if(stations_event === true) {
     // this will run after getStations() has returned
@@ -171,7 +199,7 @@ if(stations_event === true) {
         // `stations` is an array of connected stations.
         let tmp = 0;
         if(laststations !== (tmp = checksum(JSON.stringify(stations)))) {
-            console.log(`\nevent stations = ${JSON.stringify(stations)}\n`);
+            con.trace(`\nevent stations = ${JSON.stringify(stations)}\n`);
             laststations = tmp;
             stationlist = JSON.parse(JSON.stringify(stations));
         }
@@ -180,7 +208,7 @@ if(stations_event === true) {
 
 /*
     Checksum - creates a checksum for a string and returns
-    the checksum value in a string.
+    the checksum value in a string (or as an integer).
     Originally found at - https://stackoverflow.com/a/3276730/6768046
 
     And modified by - https://github.com/jxmot
@@ -199,9 +227,9 @@ function checksum(s, type = 'i')
 // 
 // the AP has been created...
 tessel.network.ap.on('create', (settings) => {
-    console.log('SUCCESS - AP created :');
-    console.log(JSON.stringify(settings, null, 4));
-    console.log('enabling AP now...\n');
+    con.log('ap.create event - created :');
+    con.log(JSON.stringify(settings, null, 4));
+    con.log('ap.create event - enabling AP now...\n');
     // enable the AP for use...
     tessel.network.ap.enable();
 });
@@ -209,16 +237,16 @@ tessel.network.ap.on('create', (settings) => {
 // the AP is enabled (but not necessarily really
 // ready to accept connections from stations
 tessel.network.ap.on('enable', () => {
-    console.log('AP enable event\n');
+    con.trace('ap.enable event - enabled\n');
     // begin a periodic check to see if
     // the AP is truly ready for use
     netIFid = setInterval(getNetIF, 5000);
     getNetIF();
 });
 
-// exit when the AP has been disabled
+// clean up and exit when the AP has been disabled
 tessel.network.ap.on('disable', () => {
-    console.log('AP disable event\n');
+    con.trace('ap.disable event - disabled\n');
     // turn the LEDs OFF as a indicator of success
     tessel.led[2].off();
     tessel.led[3].off();
@@ -244,18 +272,18 @@ tesselAPinit();
 function tesselAPinit() {
     // disable the station side of wifi
     tessel.network.wifi.disable((error) => {
-        if(error) console.log('ERROR - wifi.disable\n');
+        if(error) console.error('wifi.disable callback - ERROR\n');
         else {
             // success disabling the wifi station
-            console.log('SUCCESS - wifi.disable');
+            con.log('wifi.disable callback - SUCCESS');
 
             // set the channel
-            console.log('setting AP channel '+apconfig.channel+' now...\n');
+            con.log('setting AP channel '+apconfig.channel+' now...\n');
             tessel.network.wifi.setChannel(apconfig, (error, result) => {
-                if(error) console.log('ERROR - wifi.setChannel\n');
+                if(error) console.error('ERROR - wifi.setChannel\n');
                 else {
-                    console.log('AP channel = '+result);
-                    console.log('creating AP now...\n');
+                    con.log('AP channel = '+result);
+                    con.log('creating AP now...\n');
                     // create the AP, handle with an event
                     tessel.network.ap.create(apconfig);
                 }
@@ -278,7 +306,7 @@ function tesselAPcleanup() {
 // NOTE: rename and/or refactor this function. 
 function getNetIF() {
     let netif = os.networkInterfaces();
-    console.log(`getNetIF() looking for wlan0 - #${netIFcount}`);
+    con.log(`getNetIF() looking for wlan0 - #${netIFcount}`);
     // uncomment the line below to observe the network 
     // interfaces and the eventual appearance of the 
     // desired "wlan0" IPv4 interface - 
@@ -302,6 +330,7 @@ function getNetIF() {
                 // mark it as ready if successful
                 apip = getIPv4('wlan0');
                 apready = ((apip !== undefined) ? true : false);
+                con.trace(`getNetIF() apready = ${apready}`);
 //event??? apready
 //handler???
                 // retrieve the IP and MAC for the wired interface
@@ -310,12 +339,12 @@ function getNetIF() {
                 // are the http servers enabled?
                 if(httpenable === true) {
                     // start an http server on the access point address
-                    (apready === true ? http_wlan = new httpsrv(apip.ip, 80, 'www', adminAPI) : console.log('http_wlan not started'));
+                    (apready === true ? http_wlan = new httpsrv(apip.ip, 80, 'www', adminAPI) : console.error(`http_wlan not started, apready = ${apready}`));
                     // start an http server on the wired interface address
                     http_eth = new httpsrv(ethip.ip, 80, 'wwwadmin', adminAPI);
                 }
                 // start scanning for connected stations
-                console.log('\nstation scan started...\n');
+                con.log('\nstation scan started...\n');
                 stationsintrvl = setInterval(getStations, 5000);
 //^handler???
             } 
@@ -336,11 +365,11 @@ function cb_getStations(error, stations) {
     if(!error) {
         let tmp = 0;
         if(laststations !== (tmp = checksum(JSON.stringify(stations)))) {
-            console.log(`\ncallback stations = ${JSON.stringify(stations)}\n`);
+            con.trace(`\ncallback stations = ${JSON.stringify(stations)}\n`);
             laststations = tmp;
             stationlist = JSON.parse(JSON.stringify(stations));
         }
-    } else console.log('callback ERROR');
+    } else console.error('callback ERROR');
 };
 
 // retrieve the IPv4 address of the specified interface
@@ -362,8 +391,8 @@ function getIPv4(_iface) {
                 if(netif[iface][ix]['family'] === 'IPv4') {
                     addrinfo.ip  = netif[iface][ix]['address'];
                     addrinfo.mac = netif[iface][ix]['mac'];
-                    console.log(`getIPv4(${iface}) - `);
-                    console.log(JSON.stringify(netif[iface][ix], null, 4));
+                    con.log(`getIPv4(${iface}) - `);
+                    con.log(JSON.stringify(netif[iface][ix], null, 4));
                     break;
                 }
             }
@@ -397,10 +426,10 @@ function adminAPI(reqpath, req, res, server) {
             // respond with a list of attached WiFi stations
             case '/info/stations':
                 res.statusCode = 200;
-                console.log(server.mimetype('.json'));
+                con.log(server.mimetype('.json'));
                 res.setHeader('Content-type', server.mimetype('.json'));
                 res.end(JSON.stringify(stationlist));
-                console.log(`stationlist = ${JSON.stringify(stationlist,null,2)}`);
+                con.log(`stationlist = ${JSON.stringify(stationlist,null,2)}`);
                 bRet = true;
                 break;
 

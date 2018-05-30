@@ -10,12 +10,9 @@
 tessel-ap-http.js
 mimetypes.js
 ap_shutdown.js
+consolelog.js
 
 # used for tests & demos
 portab-off.js
 net_iface.js
 
-# temporary, don't check this in
-_http.js
-_https.js
-_test.js

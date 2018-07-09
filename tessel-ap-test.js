@@ -146,20 +146,21 @@ var http_eth = {};
 // Run-time Variables
 //
 // 
-// getNetIF() will increment this count each time 
+// waitForWlan() will increment this count each time 
 // it's called. It will help illustrate the difference
 // in when tessel.network.ap.on('enable',...) occurs 
 // versus when the AP is actually truly ready for
 // station connections.
-var netIFcount = 0;
+var wlanWaitCount = 0;
 // timer IDs from setInterval() - 
 //      AP Ready detection
-var netIFid = undefined;
+var wlanTimerID = undefined;
 //      Station Scanner
 var stationsintrvl = undefined;
 
 // use an event or a callback (if false)
 var stations_event = true;
+
 // last station count, and the current list
 var laststations = -1;
 var stationlist = {};
@@ -240,8 +241,8 @@ tessel.network.ap.on('enable', () => {
     con.trace('ap.enable event - enabled\n');
     // begin a periodic check to see if
     // the AP is truly ready for use
-    netIFid = setInterval(getNetIF, 5000);
-    getNetIF();
+    wlanTimerID = setInterval(waitForWlan, 5000);
+    waitForWlan();
 });
 
 // clean up and exit when the AP has been disabled
@@ -302,11 +303,12 @@ function tesselAPcleanup() {
     tessel.network.ap.disable();
 };
 
-// list all network interfaces...
-// NOTE: rename and/or refactor this function. 
-function getNetIF() {
+// Check for the presence of wlan0 and the IPv4
+// address. When found stop checking and continue
+// the initialization.
+function waitForWlan() {
     let netif = os.networkInterfaces();
-    con.log(`getNetIF() looking for wlan0 - #${netIFcount}`);
+    con.log(`waitForWlan() looking for wlan0 - #${wlanWaitCount}`);
     // uncomment the line below to observe the network 
     // interfaces and the eventual appearance of the 
     // desired "wlan0" IPv4 interface - 
@@ -316,25 +318,27 @@ function getNetIF() {
     // that the AP is ready. The first one to appear is IPv6, it
     // works that way on a Tessel 2.
     if(netif['wlan0'] === undefined) {
-        netIFcount += 1;
+        wlanWaitCount += 1;
     } else {
         // a "wlan0" was found, but it needs two entries. One
         // for IPv6 (first to appear) and one for IPv4
         if(netif['wlan0'].length > 1) {
             // it's likely that the IPv4 has appeared...
-            if(netIFid != undefined) {
+            if(wlanTimerID != undefined) {
                 // so let's stop scanning the network interfaces...
-                clearInterval(netIFid);
+                clearInterval(wlanTimerID);
 
+
+                // retrieve the IP and MAC for the wired interface
+                ethip = getIPv4('eth0');
                 // retrieve the IP and MAC for the access point(wlan0) and
                 // mark it as ready if successful
                 apip = getIPv4('wlan0');
                 apready = ((apip !== undefined) ? true : false);
-                con.trace(`getNetIF() apready = ${apready}`);
+                con.trace(`waitForWlan() apready = ${apready}`);
 //event??? apready
 //handler???
-                // retrieve the IP and MAC for the wired interface
-                ethip = getIPv4('eth0');
+
 
                 // are the http servers enabled?
                 if(httpenable === true) {
@@ -343,12 +347,14 @@ function getNetIF() {
                     // start an http server on the wired interface address
                     http_eth = new httpsrv(ethip.ip, 80, 'wwwadmin', adminAPI);
                 }
+
+
                 // start scanning for connected stations
                 con.log('\nstation scan started...\n');
                 stationsintrvl = setInterval(getStations, 5000);
 //^handler???
             } 
-        } else netIFcount += 1;
+        } else wlanWaitCount += 1;
     }
 };
 

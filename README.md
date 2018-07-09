@@ -92,7 +92,7 @@ Hosted on Windows 10 64bit with Node.js 6.10.2.
 The Ethernet port is connected to a LAN/router and will obtain an IP address via DHCP. The wireless interface will act as an access point and as a DHCP server to connected stations.
 
 <p align="center">
-  <img src="./mdimg/hw-overview-485x462.jpg" alt="Application Initialize flow chart" txt="Application Initialize flow chart" width="50%">
+  <img src="./mdimg/hw-overview.jpg" alt="Application Initialize flow chart" txt="Application Initialize flow chart" width="50%">
 </p>
 
 # Running the Application
@@ -450,7 +450,7 @@ In addition, `index.js` has been renamed to `tessel-ap-test.js`.
 The remainder of the code in `tessel-ap-test.js` consistutes the testing code for this application. Here is an overview of its operation :
 
 <p align="center">
-  <img src="./mdimg/flow-1-601x916.png" alt="Application Initialize flow chart" txt="Application Initialize flow chart" width="50%">
+  <img src="./mdimg/flow-1.jpg" alt="Application Initialize flow chart" txt="Application Initialize flow chart" width="55%">
 </p>
 
 ## Access Point Initialization
@@ -458,7 +458,7 @@ The remainder of the code in `tessel-ap-test.js` consistutes the testing code fo
 As previously mentioned in this document a programmatic method for initializing the Tessel access point is used. Here is an overview of how it's been accomplished :  
 
 <p align="center">
-  <img src="./mdimg/flow-2-991x575.png" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="85%">
+  <img src="./mdimg/flow-2.jpg" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="80%">
 </p>
 
 ## Display Network Interface Information
@@ -466,7 +466,7 @@ As previously mentioned in this document a programmatic method for initializing 
 After the access point has been created and enabled, a periodic call to `os.networkInterfaces()` is made and its returned data is checked for the presence of an array labeled as `"wlan0"`. When it is present and containing two elements it is evidence that the access point is running and available.
 
 <p align="center">
-  <img src="./mdimg/flow-3-391x871.png" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="40%">
+  <img src="./mdimg/flow-3.jpg" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="60%">
 </p>
 
 
@@ -477,7 +477,7 @@ After the access point has been created and enabled, a periodic call to `os.netw
 ## Shutdown and Disable
 
 <p align="center">
-  <img src="./mdimg/flow-4-676x410.png" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="75%">
+  <img src="./mdimg/flow-4.jpg" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="60%">
 </p>
 
 <hr>

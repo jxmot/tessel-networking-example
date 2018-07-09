@@ -2,8 +2,8 @@
 
 This repository contains a networking application for the Tessel 2.
 
-- [Purpose](#purpose)
-  * [Potential Uses](#-some-potential-uses)
+- [Goals](#goals)
+  * [Potential Uses](#potential-uses)
 - [Tessel 2 Development Environment](#tessel-2-development-environment)
   * [Tessel 2 Environment Versions](#tessel-2-environment-versions)
   * [Tessel 2 Network Connections](#tessel-2-network-connections)
@@ -17,12 +17,23 @@ This repository contains a networking application for the Tessel 2.
     + [Start the HTTP Servers and Scan for Stations](#start-the-http-servers-and-scan-for-stations)
     + [Connected Stations](#connected-stations)
     + [Terminating the Application](#terminating-the-application)
-    + [Options](#options)
+- [Run Time Options](#run-time-options)
+  * [Random SSID and WiFi Channel](#random-ssid-and-wifi-channel)
+  * [Application Event Handling](#application-event-handling)
+    + [Tessel WiFi Events](#tessel-wifi-events)
+    + [Station Events](#station-events)
+  * [Muting Console Output](#muting-console-output)
   * [HTTP Servers](#http-servers)
+    + [Enabling the HTTP Servers](#enabling-the-http-servers)
     + [Folder Hierarchy](#folder-hierarchy)
-    + [Admin API](#admin-api)
-- [Design Details](#design-details)
-- [Tessel Modification Details](#tessel-modification-details)
+    + [Application API](#application-api)
+
+
+
+
+
+
+
     + [Access Point Characteristics](#access-point-characteristics)
       - [Modifying the Access Point Characteristics](#modifying-the-access-point-characteristics)
 - [Desired Results](#desired-results)
@@ -42,10 +53,11 @@ This repository contains a networking application for the Tessel 2.
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
-# Purpose
+# Goals
 
-The *basic* intended purposes are - 
+The intended goals are - 
 
+* Create an application that can be used as a template for future projects
 * Enable an access point and allow stations to connect, and then provide them with an IP address 
 * Disable the Tessel's WiFi station
 * Use the Ethernet interface to obtain an IP address via DHCP
@@ -85,7 +97,7 @@ The Ethernet port is connected to a LAN/router and will obtain an IP address via
 
 # Running the Application
 
-In order to use the application it is necessary to update the Tessel 2 firmware. There is a single JavaScript file that contains entire Tessel 2 API.  
+In order to use the application it is necessary to modify the Tessel 2 firmware. There is a single JavaScript file that contains entire Tessel 2 API. 
 
 ## Initial Steps
 
@@ -210,9 +222,13 @@ ap.disable event - disabled
 
 <hr>
 
-### Options
+# Run Time Options
 
-**Random SSID and Channel** : Choose if the SSID or the WiFi channel are random each time the application is started.
+The following optional behavior is altered by changing specific boolean variables to either `true` or `false`.
+
+## Random SSID and WiFi Channel 
+
+Choose if the SSID or the WiFi channel are random each time the application is started. This is useful when developing non-client code.
 
 ```javascript
 // Random SSID & WiFi Channel
@@ -244,23 +260,73 @@ function getRandomInt(max,min) {
 };
 ```
 
-**Optional HTTP Servers** : Choose if two HTTP servers are started, one on the access point's IP address and another on the Ethernet IP address.
+## Application Event Handling
+
+There are two groups of event handlers in the application :
+
+* Tessel WiFi Events
+* Station Events
+
+### Tessel WiFi Events
+
+The Tessel Wifi events are used for demonstration and for visualizing the timing of those events with WiFi operations. The application can optionally listen for WiFi events :
+
+* `disconnect`
+* `getchannel` <- *new, added with firmware modification*
+* `setchannel` <- *new, added with firmware modification*
+
+By default these events are turned off. To enable them and to see console output the following code will require modification to `tessel-ap-test.js` : 
 
 ```javascript
-// When the following is 'true' there will be two HTTP servers started. One
-// will listen on the IP assigned to wlan0 and the other is on eth0.
-const httpenable = true;
+// true = enable Tessel wifi events, for demonstration purposes
+var show_wifievents = false;
 ```
 
-**Muting Output** :
+**NOTE:** The output to the console must also be enabled, see [Muting Console Output](#muting-console-output).
+
+### Station Events
+
+The station event is triggered when the application requests the list of attached WiFi stations. If this event is disabled the application will use a callback to obtain the connected station list. This event is enabled by default in `tessel-ap-test.js` :
 
 ```javascript
-
+// use an event or a callback (if false)
+var stations_event = true;
 ```
+
+## Muting Console Output 
+
+The file `consolelog.js` contains two variables that control whether any output is sent to the console.
+
+```javascript
+// default is - both are enabled
+con.conlog = true;
+con.contrace = true;
+```
+
+To mute all console output set both variables to `false`.
 
 ## HTTP Servers
 
-There are two http servers in the application. One will be considered as an *administration* portal and the other is for access point clients. 
+There are two http servers in the application. One will be considered as an *administration* portal and the other is for access point clients.
+
+### Enabling the HTTP Servers
+
+There are two HTTP servers that can be enabled where one is listening on the access point's IP address and the other on the Ethernet IP address.
+
+**`tessel-ap-test.js`** :
+
+```javascript
+//////////////////////////////////////////////////////////////////////////////
+// Optional HTTP Servers
+//
+// When the following is 'true' there will be two HTTP servers started. One
+// will listen on the IP assigned to wlan0 and the other is on eth0.
+const httpenable = true;
+
+const httpsrv = require('./tessel-ap-http.js');
+var http_wlan = {};
+var http_eth = {};
+```
 
 ### Folder Hierarchy
 
@@ -288,28 +354,26 @@ There are two http servers in the application. One will be considered as an *adm
                                               + img -- tessel.png 
 ```
 
+### Application API
 
-
-### Admin API
-
-The following endpoints are available - 
+The following endpoints are available :
 
 * `GET /info/ip` - return the web client's IP address
 * `GET /info/stations` - return the list of currently connected AP stations
 
 Both requests respond with JSON formatted strings.
 
-
-# Design Details
-
-
-
-# Tessel Modification Details
-
-
-
-
 <hr>
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -342,7 +406,18 @@ It behaves as expected. There are no visible delays in regards to startup and DH
 
 <hr>
 
-# Test Application Details
+
+
+
+
+
+
+
+
+
+
+
+# Test Application Design Details
 
 ## Application Initialize and Start Up
 
@@ -388,15 +463,18 @@ As previously mentioned in this document a programmatic method for initializing 
 
 ## Display Network Interface Information
 
-After the access point has been created and enabled a periodic call to `os.networkInterfaces()` is made and its returned data is checked for the presence of an array labeled as `"wlan0"`. When it is present and containing two elements it's evidence that the access point is running and available.
+After the access point has been created and enabled, a periodic call to `os.networkInterfaces()` is made and its returned data is checked for the presence of an array labeled as `"wlan0"`. When it is present and containing two elements it is evidence that the access point is running and available.
 
 <p align="center">
   <img src="./mdimg/flow-3-391x871.png" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="40%">
 </p>
 
+
+## HTTP Servers
+
+
+
 ## Shutdown and Disable
-
-
 
 <p align="center">
   <img src="./mdimg/flow-4-676x410.png" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="75%">
@@ -404,19 +482,21 @@ After the access point has been created and enabled a periodic call to `os.netwo
 
 <hr>
 
+
+
+
+
+
+
+
+
 # OpenWRT Configuration
 
-In order to modify the 
-
-[The UCI System](https://openwrt.org/docs/guide-user/base-system/uci)
-
-
-
+In order to modify the configuration you mus use OpenWRT's [UCI System](https://openwrt.org/docs/guide-user/base-system/uci)
 
 # Tessel 2 Network API Modifications
 
-
-The following has been added - 
+The following functionality has been added - 
 
 * Get/Set the WiFi channel
 * Request a list of stations connected to the access point
@@ -432,20 +512,13 @@ The following has been added -
 
 
 
-* **Access Point** :
-    * Provide the ability to programmatically configure -
-        * AP IP address
-        * AP Channel number <- complete
-        * DHCP lease duration
-        * Maximum *allowed* quantity of connected stations
-    * New events - 
-        * `tessel.network.ap.on('stationconnect', function(station) {/* manage station connections */});`
-            * the  `station` argument is an object containing station information. (*See below*)
-        * `tessel.network.ap.on('stationdisconnect', function(station) {/* manage station disconnections */});`
-            * the  `station` argument is an object containing station information. (*See below*)
-    * New method(s) - 
-        * `var apstatus = tessel.network.ap.status();`
-            * `apstatus` is an object. (*See below*)
+
+
+
+
+
+
+
 
 **`stationconnect`** object :
 
@@ -465,6 +538,7 @@ On successful connection to the AP (*With appropriate differences for `IPv6`*) :
 **`stationdisconnect`** object :
 
 On successful disconnection from the AP (*With appropriate differences for `IPv6`*) :
+
 ```json
 {
     "connected":false,
@@ -478,16 +552,23 @@ On successful disconnection from the AP (*With appropriate differences for `IPv6
 The AP status could be reported as - 
 ```json
 {
-    "enabled":false,   # false or true
-    "connections": 0,  # 0 to n
+    "enabled":false,
+    "connections": 0,
 }
 ```
 
-* **Station** : 
-   * Clear/remove all station configuration settings, such as SSID, password, and encryption.
-   * *TBD*
+Where - 
+
+**`enabled`** - Can be `false` or `true`, inicates the state of the access point.
+**`connections`** - Can range from `0` to `n`, the maximum value depends on the OpenWRT configuration.
 
 <hr>
+
+
+
+
+
+
 
 # Tessel 2 Firmware Modifications
 
@@ -507,6 +588,7 @@ Each *new* setting will be tested using the `UCI` via SSH and the command-line.
 See [OpenWRT - DHCP Pools](https://openwrt.org/docs/guide-user/base-system/dhcp_configuration#dhcp_pools) for additional information..
 
 **Connected Stations** : `iw dev wlan0 station dump` - will produce :<br>
+
 ```
 Station 5c:a8:6a:f4:e8:ee (on wlan0)
         inactive time:  2730 ms
@@ -562,58 +644,4 @@ And `cat /tmp/dhcp.leases` will give you - <br>
 ```
 1525596466 5c:a8:6a:f4:e8:ee 192.168.1.158 android-72d96d29a805b447 01:5c:a8:6a:f4:e8:ee
 ```
-
-
-# Scratch Pad Section
-
-this section is just a container for stuff I may or may not retain for this document. **consider it to be temporary and very likely to change or be removed.**
-
-* Resources used : 
-    * [OpenWRT Wireless configuration / Wifi Networks](https://wiki.openwrt.org/doc/uci/wireless#wifi_networks)
-* Affected File(s) :
-    * ` /etc/config/wireless` - via `uci`
-    * `node/tessel-export.js`
-
-```uci
-config wifi-device 'radio0'
-        option type 'mac80211'
-        option channel '11'
-        option hwmode '11g'
-        option path '10180000.wmac'
-        option htmode 'HT20'
-        option disabled '0'
-
-config wifi-iface
-        option device 'radio0'
-        option network 'wifi'
-        option mode 'sta'
-        option key 'password'
-        option ssid 'SOME_SSID'
-        option encryption 'psk2'
-        option disabled '1'
-
-config wifi-iface
-        option device 'radio0'
-        option network 'lan'
-        option mode 'ap'
-        option encryption 'psk2'
-        option key '12341234$'
-        option ssid 'TESSEL_TEST'
-        option disabled '1'
-```
-
-Then in `node/tessel-export.js:createNetwork(settings)` change ` const commands` to be :
-
-```javascript
-  const commands = `
-    uci batch <<EOF
-    set wireless.@wifi-iface[1].ssid="${settings.ssid}"
-    set wireless.@wifi-iface[1].key="${settings.password}"
-    set wireless.@wifi-iface[1].encryption="${settings.security}"
-    EOF
-  `;
-```
-
-### Settings
-
 

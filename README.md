@@ -478,8 +478,8 @@ On successful disconnection from the AP (*With appropriate differences for `IPv6
 The AP status could be reported as - 
 ```json
 {
-    "enabled":[false or true],
-    "connections": [0 to n],
+    "enabled":false,   # false or true
+    "connections": 0,  # 0 to n
 }
 ```
 

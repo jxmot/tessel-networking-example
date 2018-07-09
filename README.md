@@ -2,6 +2,46 @@
 
 This repository contains a networking application for the Tessel 2.
 
+- [Purpose](#purpose)
+  * [Potential Uses](#-some-potential-uses)
+- [Tessel 2 Development Environment](#tessel-2-development-environment)
+  * [Tessel 2 Environment Versions](#tessel-2-environment-versions)
+  * [Tessel 2 Network Connections](#tessel-2-network-connections)
+- [Running the Application](#running-the-application)
+  * [Initial Steps](#initial-steps)
+  * [Update the Tessel 2 Firmware](#update-the-tessel-2-firmware)
+  * [Download and Run](#download-and-run)
+  * [Application Output](#application-output)
+    + [Waiting for wlan0](#waiting-for-wlan0)
+    + [Collect wlan0 and eth0 Information](#collect-wlan0-and-eth0-information)
+    + [Start the HTTP Servers and Scan for Stations](#start-the-http-servers-and-scan-for-stations)
+    + [Connected Stations](#connected-stations)
+    + [Terminating the Application](#terminating-the-application)
+    + [Options](#options)
+  * [HTTP Servers](#http-servers)
+    + [Folder Hierarchy](#folder-hierarchy)
+    + [Admin API](#admin-api)
+- [Design Details](#design-details)
+- [Tessel Modification Details](#tessel-modification-details)
+    + [Access Point Characteristics](#access-point-characteristics)
+      - [Modifying the Access Point Characteristics](#modifying-the-access-point-characteristics)
+- [Desired Results](#desired-results)
+  * [Actual Access Point Behavior](#actual-access-point-behavior)
+  * [Actual LAN Client Behavior](#actual-lan-client-behavior)
+- [Test Application Details](#test-application-details)
+  * [Application Initialize and Start Up](#application-initialize-and-start-up)
+  * [Access Point Initialization](#access-point-initialization)
+  * [Display Network Interface Information](#display-network-interface-information)
+  * [Shutdown and Disable](#shutdown-and-disable)
+- [OpenWRT Configuration](#openwrt-configuration)
+- [Tessel 2 Network API Modifications](#tessel-2-network-api-modifications)
+- [Tessel 2 Firmware Modifications](#tessel-2-firmware-modifications)
+  * [Access Point API Modifications](#access-point-api-modifications)
+- [Scratch Pad Section](#scratch-pad-section)
+    + [Settings](#settings)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 # Purpose
 
 The *basic* intended purposes are - 
@@ -17,7 +57,7 @@ The *basic* intended purposes are -
 
 At this time routing traffic between the Wifi interface and the Ethernet interface is not required. This will be addressed in a separate application and accompanying documentation.
 
-## *Some* Potential Uses
+## Potential Uses
 
 * IoT gateway
 * Low power, portable access point

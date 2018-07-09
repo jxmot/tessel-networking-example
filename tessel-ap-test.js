@@ -178,15 +178,15 @@ if(show_wifievents === true) {
     // relationship to when the callback functions
     // are called.
     tessel.network.wifi.on('disconnect', () => {
-        console.log('wifi.disconnect event - disconnected');
+        con.log('wifi.disconnect event - disconnected');
     });
     
     tessel.network.wifi.on('getchannel', (error, channel) => {
-        console.log(`wifi.getchannel event - channel = ${channel}`);
+        con.log(`wifi.getchannel event - channel = ${channel}`);
     });
     
     tessel.network.wifi.on('setchannel', (channel) => {
-        console.log(`wifi.setchannel event - channel = ${channel}`);
+        con.log(`wifi.setchannel event - channel = ${channel}`);
     });
 }
 
@@ -411,7 +411,7 @@ function adminAPI(reqpath, req, res, server) {
     let bRet = false;
     if(reqpath.includes('/info/') === true) {
         switch(reqpath) {
-            // return the requestor's IP address
+            // return the requester's IP address
             case '/info/ip' :
                 res.statusCode = 200;
                 let ipx = req.headers["x-forwarded-for"];

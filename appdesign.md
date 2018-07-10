@@ -1,14 +1,23 @@
-# Test Application Design Details
+# Application Design Details
 
-# Tessel 2 Network API Modifications
+This document will cover the design details of the [jxmot/tessel-networking-example](https://github.com/jxmot/tessel-networking-example) project.
 
-The following functionality has been added - 
+- [Application Initialize and Start Up](#application-initialize-and-start-up)
+  * [Access Point Initialization](#access-point-initialization)
+  * [Wireless Network Interface Initialization](#wireless-network-interface-initialization)
+  * [HTTP Server Initialization](#http-server-initialization)
+    + [User Path Handler](#user-path-handler)
+  * [Shutdown and Disable](#shutdown-and-disable)
+- [Tessel 2 Network API Modifications](#tessel-2-network-api-modifications)
 
-* Get/Set the WiFi channel
-* Request a list of stations connected to the access point
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
+**Related Documents:**
+* [Project README](https://github.com/jxmot/tessel-networking-example/README.md)
+* [Tessel 2 Firmware Modifications](https://github.com/jxmot/tessel-networking-example/t2mods.md)
+* [Web Server Design Details](https://github.com/jxmot/tessel-networking-example/aphttp.md)
 
-## Application Initialize and Start Up
+# Application Initialize and Start Up
 
 The `t2 init` command creates an `index.js` file with the following - 
 
@@ -28,7 +37,7 @@ setInterval(() => {
 }, 100);
 ```
 
-A variation of that code is used in this application for the purpose of indicating that it is running. Additions to it include - 
+A variation of that code is used in this application for the purpose of indicating that it is running. Additions to it have included - 
 
 * Turning off the GPIO ports, which has the side effect of turning off the PORT A and PORT B LEDs.
 * Increasing the blink interval to 500ms.
@@ -36,10 +45,10 @@ A variation of that code is used in this application for the purpose of indicati
 
 In addition, `index.js` has been renamed to `tessel-ap-test.js`.
 
-The remainder of the code in `tessel-ap-test.js` consistutes the testing code for this application. Here is an overview of its operation :
+The remainder of the code in `tessel-ap-test.js` consistutes the remaining *logic* code for this application. Here is an overview of its operation :
 
 <p align="center">
-  <img src="./mdimg/flow-1.jpg" alt="Application Initialize flow chart" txt="Application Initialize flow chart" width="55%">
+  <img src="./mdimg/flow-1.jpg" alt="Application overview flow chart" txt="Application overview flow chart" width="55%">
 </p>
 
 ## Access Point Initialization
@@ -50,68 +59,50 @@ As previously mentioned in this document a programmatic method for initializing 
   <img src="./mdimg/flow-2.jpg" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="80%">
 </p>
 
-## Display Network Interface Information
+## Wireless Network Interface Initialization
 
 After the access point has been created and enabled, a periodic call to `os.networkInterfaces()` is made and its returned data is checked for the presence of an array labeled as `"wlan0"`. When it is present and containing two elements it is evidence that the access point is running and available.
 
 <p align="center">
-  <img src="./mdimg/flow-3.jpg" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="60%">
+  <img src="./mdimg/flow-3.jpg" alt="Wireless Network Interface Initialization flow chart" txt="Wireless Network Interface Initialization flow chart" width="60%">
 </p>
 
+## HTTP Server Initialization
 
-## HTTP Servers
+The HTTP server has been implemented as a *class*. This makes it possible to instantiate *more than one* server. After a server has been initialized and is listening it can serve resources from one of two locations :
 
+* From the path to the `docroot`, where `docroot` was one of the arguments used when instantiating this class
+* From a *common* path. This path is shared by all instantiated servers. Its purpose is to server up 404 pages and other common file resources.
 
+<p align="center">
+  <img src="./mdimg/flow-5.jpg" alt="HTTP Server Initialization flow chart" txt="HTTP Server Initialization flow chart" width="45%">
+</p>
+
+### User Path Handler
+
+The `userPaths` argument to the `httpsrv` class is optional and can be used for providing a function to the server that handles application specific paths and/or endpoints. If it detects and responds to a request the function must return `true`. A return of `false` will indicate to `httpsrv` that the request was not handled and that it should satisfy the request.
+
+<p align="center">
+  <img src="./mdimg/flow-6.jpg" alt="HTTP Server Request Handling flow chart" txt="HTTP Server Request Handling flow chart" width="40%">
+</p>
 
 ## Shutdown and Disable
 
+When a *signal* is received by the application it will halt all interval timers and disable the access point. If this is not done the access point **will** continue to operate and accept connections even if the application is no longer running.
+
 <p align="center">
-  <img src="./mdimg/flow-4.jpg" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="60%">
+  <img src="./mdimg/flow-4.jpg" alt="Shutdown and Disable flow chart" txt="Shutdown and Disable flow chart" width="60%">
 </p>
 
-<hr>
+# Tessel 2 Network API Modifications
 
-**`stationconnect`** object :
+The following functionality has been added to the Tessel 2 firmware - 
 
-The `station` object will contain - 
+* Get/Set the WiFi channel
+* Request a list of stations currently connected to the access point
 
-On successful connection to the AP (*With appropriate differences for `IPv6`*) :
-```json
-{
-    "connected":true,
-    "address": "192.168.1.X",
-    "netmask": "255.255.255.0",
-    "family": "IPv4",
-    "mac": "00:11:22:33:44:55"
-}
-```
+The modifications are detailed in [jxmot/tessel-networking-example/t2mods.md](https://github.com/jxmot/tessel-networking-example/t2mods.md).
 
-**`stationdisconnect`** object :
-
-On successful disconnection from the AP (*With appropriate differences for `IPv6`*) :
-
-```json
-{
-    "connected":false,
-    "address": "192.168.1.X",
-    "mac": "00:11:22:33:44:55"
-}
-```
-
-**`apstatus`** object :
-
-The AP status could be reported as - 
-```json
-{
-    "enabled":false,
-    "connections": 0,
-}
-```
-
-Where - 
-
-**`enabled`** - Can be `false` or `true`, inicates the state of the access point.
-**`connections`** - Can range from `0` to `n`, the maximum value depends on the OpenWRT configuration.
 
 <hr>
 

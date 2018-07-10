@@ -4,7 +4,7 @@ This document will cover the design details of the [jxmot/tessel-networking-exam
 
 - [Application Initialize and Start Up](#application-initialize-and-start-up)
   * [Access Point Initialization](#access-point-initialization)
-  * [Wireless Network Interface Initialization](#wireless-network-interface-initialization)
+    + [Wireless Network Interface Initialization](#wireless-network-interface-initialization)
   * [HTTP Server Initialization](#http-server-initialization)
     + [User Path Handler](#user-path-handler)
   * [Shutdown and Disable](#shutdown-and-disable)
@@ -53,13 +53,13 @@ The remainder of the code in `tessel-ap-test.js` consistutes the remaining *logi
 
 ## Access Point Initialization
 
-As previously mentioned in this document a programmatic method for initializing the Tessel access point is used. Here is an overview of how it's been accomplished :  
+This application initializes the access point programmatically. Here is an overview of how it's been accomplished :  
 
 <p align="center">
   <img src="./mdimg/flow-2.jpg" alt="Access Point Initialization flow chart" txt="Access Point Initialization flow chart" width="80%">
 </p>
 
-## Wireless Network Interface Initialization
+### Wireless Network Interface Initialization
 
 After the access point has been created and enabled, a periodic call to `os.networkInterfaces()` is made and its returned data is checked for the presence of an array labeled as `"wlan0"`. When it is present and containing two elements it is evidence that the access point is running and available.
 
@@ -101,7 +101,7 @@ The following functionality has been added to the Tessel 2 firmware -
 * Get/Set the WiFi channel
 * Request a list of stations currently connected to the access point
 
-The modifications are detailed in [jxmot/tessel-networking-example/t2mods.md](https://github.com/jxmot/tessel-networking-example/t2mods.md).
+The required modifications are detailed in [jxmot/tessel-networking-example/t2mods.md](https://github.com/jxmot/tessel-networking-example/t2mods.md).
 
 
 <hr>

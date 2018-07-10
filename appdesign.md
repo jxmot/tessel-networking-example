@@ -13,9 +13,9 @@ This document will cover the design details of the [jxmot/tessel-networking-exam
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 **Related Documents:**
-* [Project README](https://github.com/jxmot/tessel-networking-example/README.md)
-* [Tessel 2 Firmware Modifications](https://github.com/jxmot/tessel-networking-example/t2mods.md)
-* [Web Server Design Details](https://github.com/jxmot/tessel-networking-example/aphttp.md)
+* [Project README](https://github.com/jxmot/tessel-networking-example/blob/master/README.md)
+* [Tessel 2 Firmware Modifications](https://github.com/jxmot/tessel-networking-example/blob/master/t2mods.md)
+* [Web Server Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/aphttp.md)
 
 # Application Initialize and Start Up
 

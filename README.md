@@ -31,9 +31,9 @@ This repository contains a networking application for the Tessel 2.
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 **Related Documents:**
-* [Application Design Details](https://github.com/jxmot/tessel-networking-example/appdesign.md)
-* [Tessel 2 Firmware Modifications](https://github.com/jxmot/tessel-networking-example/t2mods.md)
-* [Web Server Design Details](https://github.com/jxmot/tessel-networking-example/aphttp.md)
+* [Application Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/appdesign.md)
+* [Tessel 2 Firmware Modifications](https://github.com/jxmot/tessel-networking-example/blob/master/t2mods.md)
+* [Web Server Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/aphttp.md)
 
 # Goals
 

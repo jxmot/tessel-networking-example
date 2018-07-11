@@ -1481,6 +1481,8 @@ class Wifi extends EventEmitter {
   setChannel(settings, callback) {
     callback = enforceCallback(callback);
     channel(settings,'set')
+// jxmot - try this...
+//      .then(commitWireless)
       .then(result => emitAndCallback(`setchannel`, this, result, callback))
       .catch(error => emitErrorCallback(this, error, callback));
   };

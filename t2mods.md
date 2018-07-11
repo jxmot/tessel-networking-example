@@ -1,8 +1,55 @@
 # Tessel 2 Firmware Modifications
 
-Below are modifications I've made in regards to the proposals mentioned above. 
 
-## Access Point API Modifications
+
+* Resources used : 
+    * [The UCI System](https://openwrt.org/docs/guide-user/base-system/uci)
+    * [OpenWRT Wireless configuration / Wifi Networks](https://wiki.openwrt.org/doc/uci/wireless#wifi_networks)
+
+* Affected File(s) :
+    * `/etc/config/wireless` - via `uci` commands run by the API
+    * `node/tessel-export.js` - API modifications
+
+
+# Tessel 2 API Overview
+
+The Tessel 2 API is contained in `tessel-export.js`, and it utilizes :
+
+* The Node.js native package - `child_process`
+* Promises
+
+There is more, however that's not relevant to this document.
+
+# Access Point API Modifications
+
+Three API functions have been created :
+
+* Get current WiFi channel : `tessel.network.wifi.getChannel()`
+* Set new WiFi channel : `tessel.network.wifi.setChannel()`
+* Get list of stations currently connected to the access point : `tessel.network.ap.stations()`
+
+# Design Details
+
+## Get or Set WiFi Channel
+
+## Request Station List
+
+
+
+
+# Future Modifications
+
+
+
+
+
+
+
+
+
+
+
+
 
 Each *new* setting will be tested using the `UCI` via SSH and the command-line.
 
@@ -13,7 +60,14 @@ Each *new* setting will be tested using the `UCI` via SSH and the command-line.
 **DHCP Start** : `uci set dhcp.lan.start=100` - <br>
 **DHCP Limit** : `uci set dhcp.lan.limit=150` - <br>
 **DHCP Lease Time** : `uci set dhcp.lan.leasetime=12h` - <br>
+
 See [OpenWRT - DHCP Pools](https://openwrt.org/docs/guide-user/base-system/dhcp_configuration#dhcp_pools) for additional information..
+
+
+
+
+
+
 
 **Connected Stations** : `iw dev wlan0 station dump` - will produce :<br>
 
@@ -40,35 +94,3 @@ Station 5c:a8:6a:f4:e8:ee (on wlan0)
         connected time: 111 seconds
 ```
 
-And `iwinfo wlan0 assoclist` will produce :<br>
-
-```
-5C:A8:6A:F4:E8:EE  -37 dBm / unknown (SNR -37)  70 ms ago
-        RX: 12.0 MBit/s, MCS 0, 20MHz                   1189 Pkts.
-        TX: 28.9 MBit/s, MCS 3, 20MHz, short GI          107 Pkts.
-```
-If there are no stations connected - 
-```
-No station connected
-```
-
-For a more manageable list use `arp`, which will produce :<br>
-
-```
-IP address       HW type     Flags       HW address            Mask     Device
-192.168.1.158    0x1         0x2         23:00:6a:f4:e8:ab     *        wlan0
-192.168.0.7      0x1         0x2         10:0a:23:e1:ab:3c     *        eth0
-192.168.0.1      0x1         0x2         10:aa:21:d5:0d:99     *        eth0
-```
-
-Then refine it a little with this - `arp | grep wlan0`, which will produce :<br>
-
-```
-192.168.1.158    0x1         0x2         23:00:6a:f4:e8:ab     *        wlan0
-```
-
-And `cat /tmp/dhcp.leases` will give you - <br>
-
-```
-1525596466 5c:a8:6a:f4:e8:ee 192.168.1.158 android-72d96d29a805b447 01:5c:a8:6a:f4:e8:ee
-```

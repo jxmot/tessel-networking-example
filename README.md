@@ -304,10 +304,6 @@ There are two HTTP servers that can be enabled where one is listening on the acc
 // When the following is 'true' there will be two HTTP servers started. One
 // will listen on the IP assigned to wlan0 and the other is on eth0.
 const httpenable = true;
-
-const httpsrv = require('./tessel-ap-http.js');
-var http_wlan = {};
-var http_eth = {};
 ```
 
 ### Folder Hierarchy

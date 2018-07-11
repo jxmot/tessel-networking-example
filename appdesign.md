@@ -88,7 +88,7 @@ The `userPaths` argument to the `httpsrv` class is optional and can be used for 
 
 ## Shutdown and Disable
 
-When a *signal* is received by the application it will halt all interval timers and disable the access point. If this is not done the access point **will** continue to operate and accept connections even if the application is no longer running.
+When a *signal*(such as CTRL-C) is received by the application it will halt all interval timers and disable the access point. If this is not done the access point **will** continue to operate and accept connections even if the application is no longer running.
 
 <p align="center">
   <img src="./mdimg/flow-4.jpg" alt="Shutdown and Disable flow chart" txt="Shutdown and Disable flow chart" width="60%">
@@ -101,7 +101,7 @@ The following functionality has been added to the Tessel 2 firmware -
 * Get/Set the WiFi channel
 * Request a list of stations currently connected to the access point
 
-The required modifications are detailed in [jxmot/tessel-networking-example/t2mods.md](https://github.com/jxmot/tessel-networking-example/t2mods.md).
+The required modifications are detailed in [jxmot/tessel-networking-example/t2mods.md](https://github.com/jxmot/tessel-networking-example/blob/master/t2mods.md).
 
 
 <hr>

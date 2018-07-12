@@ -2,20 +2,25 @@
 
 
 
+**Related Documents:**
+* [Project README](https://github.com/jxmot/tessel-networking-example/blob/master/README.md)
+* [Tessel 2 Firmware Modifications](https://github.com/jxmot/tessel-networking-example/blob/master/t2mods.md)
+* [Web Server Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/aphttp.md)
+
+# Tessel 2 API Overview
+
 * Resources used : 
     * [The UCI System](https://openwrt.org/docs/guide-user/base-system/uci)
     * [OpenWRT Wireless configuration / Wifi Networks](https://wiki.openwrt.org/doc/uci/wireless#wifi_networks)
 
 * Affected File(s) :
     * `/etc/config/wireless` - via `uci` commands run by the API
-    * `node/tessel-export.js` - API modifications
-
-
-# Tessel 2 API Overview
+    *  [`/t2-firmware`](https://github.com/tessel/t2-firmware)`/node/tessel-export.js` - API modifications
 
 The Tessel 2 API is contained in `tessel-export.js`, and it utilizes :
 
-* The Node.js native package - `child_process`
+* The Node.js native package : `child_process`
+    * A majority of the API functions use `child_process.exec()` to execute OpenWRT command line utilities 
 * Promises
 
 There is more, however that's not relevant to this document.
@@ -30,7 +35,103 @@ Three API functions have been created :
 
 # Design Details
 
+Each of the new functions also make use of `child_process` and promises. 
+
 ## Get or Set WiFi Channel
+
+The new functions are :
+
+```javascript
+  getChannel(callback) {
+    callback = enforceCallback(callback);
+    channel({},'get')
+      .then(result => emitAndCallback(`getchannel`, this, result, callback))
+      .catch(error => emitErrorCallback(this, error, callback));
+  };
+```
+
+**and**
+
+```javascript
+  setChannel(settings, callback) {
+    callback = enforceCallback(callback);
+    channel(settings,'set')
+      .then(commitWireless)
+      .then(result => emitAndCallback(`setchannel`, this, result, callback))
+      .catch(error => emitErrorCallback(this, error, callback));
+  };
+```
+
+Each calls a new common function :
+
+```javascript
+function channel(settings,action) {
+  const ucigetchannel = `uci get wireless.@wifi-device[0].channel`;
+  const ucisetchannel = `uci set wireless.@wifi-device[0].channel=${settings.channel}`;
+
+  let act = (typeof action === 'string' ? (action.length === 3 ? action.toLowerCase() : 'get') : 'get');
+  let uciact = (act === 'set' ? ucisetchannel : ucigetchannel);
+
+  return new Promise(resolve => {
+      cp.exec(uciact, (error, result) => {
+      if (error) {
+        throw error;
+      }
+      if(act === 'set') resolve(settings.channel);
+      else resolve(result);
+    });
+  });
+}
+```
+
+Both functions can *optionally* return their result either through a call back function or an event. This allows for some flexibility in designs that use these functions.
+
+The `tessel.network.wifi.setChannel()` function makes use of the same object as the original `tessel.network.ap.create()` function for passing in access point settings :
+
+```javascript
+// Access Point Configuration
+const apconfig = {
+        ssid: 'UR_SSID',        // required
+        password: '12341234$',  // required if network is password-protected
+        security: 'psk2',       // available values - none, wep, psk, psk2, default 
+                                // is 'none' if no password needed, default is 'psk2' otherwise. 
+                                // See https://tessel.io/docs/cli#usage for more info
+        channel: 8              // a channel number
+};
+```
+
+Here's an example using a call back :
+
+```javascript
+// set the channel (with callback)
+console.log('setting AP channel '+apconfig.channel+' now...\n');
+tessel.network.wifi.setChannel(apconfig, (error, result) => {
+    if(error) console.error('ERROR - wifi.setChannel\n');
+    else {
+        console.log('AP channel = '+result);
+        console.log('creating AP now...\n');
+        // create the AP, handle with an event
+        tessel.network.ap.create(apconfig);
+    }
+});
+```
+
+Here's another using an event : 
+
+```javascript
+// set the channel (with event)
+console.log('setting AP channel '+apconfig.channel+' now...\n');
+tessel.network.wifi.setChannel(apconfig);
+// do other stuff or go idle
+
+
+tessel.network.ap.on('setchannel', (result) => {
+    console.log('AP channel = '+result);
+    console.log('creating AP now...\n');
+    // create the AP, handle with an event
+    tessel.network.ap.create(apconfig);
+});
+```
 
 ## Request Station List
 

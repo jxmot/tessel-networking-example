@@ -342,3 +342,5 @@ The following endpoints are available :
 Both requests respond with JSON formatted strings.
 
 <hr>
+<p align="center">© 2018 J.Motyl</p>
+

@@ -105,4 +105,5 @@ The required modifications are detailed in [jxmot/tessel-networking-example/t2mo
 
 
 <hr>
+<p align="center">© 2018 J.Motyl</p>
 

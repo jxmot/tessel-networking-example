@@ -21,3 +21,7 @@ This file describes how HTTP servers were implemented for the [jxmot/tessel-netw
 
 ## User Path Handler
 
+
+
+<hr>
+<p align="center">© 2018 J.Motyl</p>

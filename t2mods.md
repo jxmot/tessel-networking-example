@@ -1,13 +1,26 @@
 # Tessel 2 Firmware Modifications
 
+- [Tessel 2 API Review](#tessel-2-api-overview)
+- [Access Point API Modifications](#access-point-api-modifications)
+- [Design Details](#design-details)
+  * [Get or Set WiFi Channel](#get-or-set-wifi-channel)
+  * [Request Station List](#request-station-list)
+- [Future Modifications](#future-modifications)
+  * [Access Point Functions](#access-point-functions)
+    + [UCI Access Point Commands](#uci-access-point-commands)
+  * [DHCP Functions](#dhcp-functions)
+    + [UCI DHCP Commands](#uci-dhcp-commands)
+  * [WiFi Functions](#wifi-functions)
+    + [UCI DHCP Commands](#uci-dhcp-commands-1)
 
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 **Related Documents:**
 * [Project README](https://github.com/jxmot/tessel-networking-example/blob/master/README.md)
 * [Tessel 2 Firmware Modifications](https://github.com/jxmot/tessel-networking-example/blob/master/t2mods.md)
 * [Web Server Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/aphttp.md)
 
-# Tessel 2 API Overview
+# Tessel 2 API Review
 
 * Resources used : 
     * [The UCI System](https://openwrt.org/docs/guide-user/base-system/uci)
@@ -124,7 +137,7 @@ console.log('setting AP channel '+apconfig.channel+' now...\n');
 tessel.network.wifi.setChannel(apconfig);
 // do other stuff or go idle
 
-
+// After a channel is set continue and enable the AP
 tessel.network.ap.on('setchannel', (result) => {
     console.log('AP channel = '+result);
     console.log('creating AP now...\n');
@@ -135,63 +148,229 @@ tessel.network.ap.on('setchannel', (result) => {
 
 ## Request Station List
 
+The new functions is :
 
+```javascript
+  stations(callback) {
+    callback = enforceCallback(callback);
+    getStations()
+    .then(result => {
+        emitAndCallback('stations', this, result, callback);
+    })
+    .catch(error => emitErrorCallback(this, error, callback));
+  }
+```
 
+This functionality is more complex than setting the WiFi channel. It requires chaining of promises and the use of `Promise.all()`.
+
+```javascript
+function getStations() {
+    var _stalist = [];
+    return new Promise((resolve,reject) => {
+        getNetIFs()
+        .then(netifs => {
+            if(netifs.length === 0) reject(new Error('netif length=0'));
+            else {
+                let prom = [];
+                netifs.forEach((netif, index) => {
+                    prom.push(getMACsFromNetIF(netif));
+                });
+                Promise.all(prom).then(ifacemacs => {
+                    let prom2 = [];
+                    // this will always be 1 even if empty
+                    if(ifacemacs.length === 0) reject(new Error('ifacemacs length=0'));
+                    ifacemacs.forEach((iface, iface_idx) => {
+                        iface['mlist'].forEach((mac, index) => {
+                            prom2.push(getMACInfo(ifacemacs[iface_idx].iface, mac));
+                        });
+                    });
+
+                    Promise.all(prom2).then(station => {
+                        station.forEach((found, index) => {
+                            _stalist.push(found);
+                        });
+                        resolve(_stalist);
+                    });
+                });
+            }
+        });
+    });
+};
+
+function getNetIFs() {
+    return new Promise(resolve => {
+        cp.exec('iw dev | grep Interface | cut -f 2 -s -d" "', (error, _ifaces) => {
+            if (error) {
+                throw error;
+            }
+            // ifaces will contain all of the wireless interface names, typically
+            // on the tessel it would just be "wlan0"
+            let ifaces = (_ifaces.trim() != '') ? _ifaces.split('\n').filter(function(el) {return el.length != 0}) : [];
+            resolve(ifaces);
+        });
+    });
+};
+
+function getMACsFromNetIF(netif) {
+    return new Promise(resolve => {
+        cp.exec(`iw dev ${netif} station dump | grep Station | cut -f 2 -s -d" "`, (error, _maclist) => {
+            if (error) {
+                throw error;
+            }
+            let maclist = (_maclist.trim() !== '') ? _maclist.split('\n').filter(function(el) {return el.length != 0}) : [];
+            let result = {
+                'iface': netif,
+                'mlist': maclist
+            };
+            resolve(result);
+        });
+    });
+};
+
+function getMACInfo(iface, mac) {
+    let station = {};
+    return new Promise((resolve,reject) => {
+        if(mac !== '') {
+            getMACInfo_ip(mac)
+            .then(station => {
+                getMACInfo_host(station)
+                .then(station => {
+                    getMACInfo_lease(station)
+                    .then(station => {
+                        station.iface = iface;
+                        resolve(station);
+                    });
+                });
+            });
+        } else reject(new Error('mac = ""'));
+    });
+};
+
+function getMACInfo_ip(mac) {
+    let station = {};
+    return new Promise(resolve => {
+        cp.exec(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${mac} | cut -f 2 -s -d" "`, (error, ip) => {
+            if (error) {
+                throw error;
+            }
+            station.mac = mac.toString();
+            station.ip = ip.replace(/(\r\n\t|\n|\r\t)/gm,'');
+            resolve(station);
+        });
+    });
+};
+
+function getMACInfo_host(station) {
+    return new Promise(resolve => {
+        cp.exec(`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep ${station.mac} | cut -f 3 -s -d" "`, (error, host) => {
+            if (error) {
+                throw error;
+            }
+            station.host = host.replace(/(\r\n\t|\n|\r\t)/gm,'');
+            resolve(station);
+        });
+    });
+};
+
+function getMACInfo_lease(station) {
+    return new Promise(resolve => {
+        cp.exec(`cat /tmp/dhcp.leases | grep ${station.mac} | cut -f 1 -s -d" "`, (error, tstamp) => {
+            if (error) {
+                throw error;
+            }
+            station.tstamp = parseInt(tstamp.replace(/(\r\n\t|\n|\r\t)/gm,''));
+            resolve(station);
+        });
+    });
+};
+```
+
+Like the channel functions the station list can be returned via a call back or an event. It is the responsibility of the client application to make periodic list requests and determine if stations have either connected or disconnected.
+
+```javascript
+// Station Scanner
+var stationsintrvl = undefined;
+
+// start scanning for connected stations
+con.log('\nstation scan started...\n');
+stationsintrvl = setInterval(getStations, 5000);
+
+// last station count, and the current list
+var laststations = -1;
+var stationlist = {};
+
+// this will run after getStations() has returned
+// a list of attached stations. This is where you
+// would determine if any station(s) have been 
+// added or removed.
+tessel.network.ap.on('stations', (stations) => {
+    // `stations` is an array of connected stations.
+    let tmp = 0;
+    if(laststations !== (tmp = checksum(JSON.stringify(stations)))) {
+        console.log(`\nevent stations = ${JSON.stringify(stations)}\n`);
+        laststations = tmp;
+        stationlist = JSON.parse(JSON.stringify(stations));
+    }
+});
+
+/*
+    Checksum - creates a checksum for a string and returns
+    the checksum value in a string (or as an integer).
+    Originally found at - https://stackoverflow.com/a/3276730/6768046
+
+    And modified by - https://github.com/jxmot
+*/
+function checksum(s, type = 'i')
+{
+    var chk = 0x5F378EA8;
+    var len = s.length;
+    for (var i = 0; i < len; i++) chk += (s.charCodeAt(i) * (i + 1));
+    if(type === 's') return (chk & 0xffffffff).toString(16);
+    else return (chk & 0xffffffff);
+};
+```
 
 # Future Modifications
 
+Each of the following sections will describe *proposed* API functions, and the `uci` commands required to make them work.
 
+## Access Point Functions
 
+* `tessel.network.ap.setIP()`
+* `tessel.network.ap.getIP()` - not necessary, the IP address is provided after the access point has been created with `tessel.network.ap.create()`.
+* `tessel.network.ap.setNetMask()`
+* `tessel.network.ap.getNetMask()`
 
+### UCI Access Point Commands
 
+**Set Static AP IP Address** : `uci set network.lan.ipaddr=192.168.1.101`<br>
+**Get Static AP IP Address** : `uci get network.lan.ipaddr`<br>
+**Set IP Net Mask** : `uci set network.lan.netmask=255.255.255.0`<br>
+**Get IP Net Mask** : `uci get network.lan.netmask`<br>
 
+## DHCP Functions
 
+* `tessel.network.dhcp.setStartLimit()`
+* `tessel.network.dhcp.setLeaseTime()`
 
+### UCI DHCP Commands
 
-
-
-
-
-Each *new* setting will be tested using the `UCI` via SSH and the command-line.
-
-**WiFi Channel** : `uci set wireless.@wifi-device[0].channel=6` - Set the WiFi channel to `6`.<br>
-**Static AP IP Address** : `uci set network.lan.ipaddr=192.168.1.101` - Set the IP address used by the AP.<br>
-**IP Net Mask** : `uci set network.lan.netmask=255.255.255.0` - <br>
-
-**DHCP Start** : `uci set dhcp.lan.start=100` - <br>
-**DHCP Limit** : `uci set dhcp.lan.limit=150` - <br>
-**DHCP Lease Time** : `uci set dhcp.lan.leasetime=12h` - <br>
+**DHCP Start** : `uci set dhcp.lan.start=100`<br>
+**DHCP Limit** : `uci set dhcp.lan.limit=150`<br>
+**DHCP Lease Time** : `uci set dhcp.lan.leasetime=12h`<br>
 
 See [OpenWRT - DHCP Pools](https://openwrt.org/docs/guide-user/base-system/dhcp_configuration#dhcp_pools) for additional information..
 
+## WiFi Functions
 
+* `tessel.network.wifi.setMACWhiteList()`
+* `tessel.network.wifi.setMACBlackList()`
+* `tessel.network.wifi.disableMACList()`
 
+### UCI DHCP Commands
 
+*None at this time.*
 
-
-
-**Connected Stations** : `iw dev wlan0 station dump` - will produce :<br>
-
-```
-Station 5c:a8:6a:f4:e8:ee (on wlan0)
-        inactive time:  2730 ms
-        rx bytes:       33012
-        rx packets:     736
-        tx bytes:       11621
-        tx packets:     67
-        tx retries:     6
-        tx failed:      29
-        signal:         -37 dBm
-        signal avg:     -37 dBm
-        tx bitrate:     26.0 MBit/s MCS 3
-        rx bitrate:     12.0 MBit/s
-        expected throughput:    9.612Mbps
-        authorized:     yes
-        authenticated:  yes
-        preamble:       short
-        WMM/WME:        yes
-        MFP:            no
-        TDLS peer:      no
-        connected time: 111 seconds
-```
+<hr>
+<p align="center">© 2018 J.Motyl</p>
 

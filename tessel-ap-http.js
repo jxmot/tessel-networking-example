@@ -12,10 +12,8 @@ const http = require('http');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
-
 // file extension to mime type table
 const mimetyp = require('./mimetypes.js');
-
 // Unmute/mute console output.
 const _con = require('./consolelog.js');
 const con = new _con();
@@ -23,7 +21,6 @@ const con = new _con();
 //////////////////////////////////////////////////////////////////////////////
 // HTTP Server Module
 module.exports = httpsrv;
-
 // returns the mime type for a file with
 // a path
 httpsrv.mime = function(pathname) {
@@ -38,7 +35,6 @@ httpsrv.mimetype = function(ext) {
 
 // create the object...
 function httpsrv(ipaddr, port, _docroot, userPaths) {
-
     // create a "document root" for this particular
     // instance of the server.
     let docroot = 'www';

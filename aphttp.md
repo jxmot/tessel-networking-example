@@ -3,11 +3,15 @@
 This file describes how HTTP servers were implemented for the [jxmot/tessel-networking-example
 ](https://github.com/jxmot/tessel-networking-example) project. 
 
-## Overview
+# Overview
 
 # Use
 
 # Details
+
+<p align="center">
+  <img src="./mdimg/flow-6.jpg" alt="Application overview flow chart" txt="Application overview flow chart" width="35%">
+</p>
 
 ## Extending
 

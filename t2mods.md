@@ -17,7 +17,7 @@
 
 **Related Documents:**
 * [Project README](https://github.com/jxmot/tessel-networking-example/blob/master/README.md)
-* [Tessel 2 Firmware Modifications](https://github.com/jxmot/tessel-networking-example/blob/master/t2mods.md)
+* [Application Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/appdesign.md)
 * [Web Server Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/aphttp.md)
 
 # Tessel 2 API Review

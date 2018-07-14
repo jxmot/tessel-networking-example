@@ -3,6 +3,13 @@
 This file describes how HTTP servers were implemented for the [jxmot/tessel-networking-example
 ](https://github.com/jxmot/tessel-networking-example) project. 
 
+
+**Related Documents:**
+* [Project README](https://github.com/jxmot/tessel-networking-example/blob/master/README.md)
+* [Application Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/appdesign.md)
+* [Tessel 2 Firmware Modifications](https://github.com/jxmot/tessel-networking-example/blob/master/t2mods.md)
+
+
 # Overview
 
 # Use

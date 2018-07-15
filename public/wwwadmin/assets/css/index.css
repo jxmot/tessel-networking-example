@@ -5,14 +5,14 @@
 
 table {
     table-layout: fixed;
-    width: 75%; /* must have this set */
+    width: 75%;
     margin: 0 auto;
     border: 1px solid black;
 }
 
 .table-cell-center {
-    padding: 2% !important;
-    text-align: center!important;
+    padding: .75%;
+    text-align: center;
 }
 
 th.table-cell-center {

@@ -2,25 +2,25 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>title</title>
-    <link rel="stylesheet" href="assets/css/index.css">
+    <title>Access Point Demo - ADMIN</title>
+    <link rel="stylesheet" href="/assets/css/index.css">
 </head>
 <body>
-    <h1>Access Point Demo - ADMIN</h1>
-    <p>
-        your IP is - <span id="ipaddr"></span>
+    <h1 style="text-align:center">Access Point Demo - ADMIN</h1>
+    <p style="text-align:center">
+        Your IP is - <span id="ipaddr" style="font-weight:bold"></span>
     </p>
     <br>
     <p>
-        current stations - <br>
-        <div class="table-responsive table-scroll">
-            <table class="table" id="repo-labels-list">
+        <h3 style="text-align:center">Current Stations</h3>
+        <div class="table-scroll">
+            <table class="table" id="station-list">
                 <thead>
-                    <tr id="labels-list-header-row">
+                    <tr class="station-list-header">
                         <th class="table-cell-center">MAC</th>
                         <th class="table-cell-center">IP</th>
                         <th class="table-cell-center">Lease Expires</th>
-                        <th class="table-cell-center">Host</th>
+                        <th class="table-cell-center border-right-none">Host</th>
                     </tr>
                 </thead>
                 <tbody id="station-list-body">
@@ -44,7 +44,9 @@
             // ask the server for the current station list
             $.get('/info/stations', function(data) {
                 console.log(`stations - ${JSON.stringify(data)}`);
+                $('#station-list').hide();
                 renderStations($('#station-list-body'), data);
+                $('#station-list').show();
             });
         }
         if(document.addEventListener) document.addEventListener('DOMContentLoaded', autorun, false);
@@ -55,34 +57,29 @@
             for(var ix = 0;ix < stations.length;ix += 1) {
                 // copy the label data, break any references
                 const station = JSON.parse(JSON.stringify(stations[ix]));
-        
-                //let mac = station.mac;
-        
                 // append the current index to the name
                 let mac = station.mac.trim().replace(/\:/g, '');
                 let macix = mac+'-'+ix;
-        
                 // build the table's row element
                 let row = $('<tr>').attr('id', macix);
                 $(row).attr('data-statn', JSON.stringify(station));
-        
+                // MAC
                 let cell = $('<td>').attr('id', macix+'-mac').text((station.mac === null ? '' : station.mac));
                 $(cell).addClass('table-cell-center');
                 $(row).append(cell);
-        
+                // IP
                 cell = $('<td>').attr('id', macix+'-ip').text((station.ip === null ? '' : station.ip));
                 $(cell).addClass('table-cell-center');
                 $(row).append(cell);
-        
+                // Lease Expires
                 cell = $('<td>').attr('id', macix+'-tstamp').text((station.tstamp === null ? '' : getDateTime(station.tstamp)));
                 $(cell).addClass('table-cell-center');
                 $(cell).attr('data-tstamp', station.tstamp);
                 $(row).append(cell);
-        
+                // Host
                 cell = $('<td>').attr('id', macix+'-host').text((station.host === null ? '' : station.host));
-                $(cell).addClass('table-cell-center');
+                $(cell).addClass('table-cell-center border-right-none');
                 $(row).append(cell);
-        
                 // all cells complete, append this row to the table
                 $(target).append(row);
                 //sortTable(target, 'tstamp');
@@ -97,7 +94,7 @@
             var offset = (_offset === undefined ? -5 : _offset);
             var date = new Date((tstamp*1000) + (3600000*offset));
             var iso = date.toISOString().match(/(\d{4}\-\d{2}\-\d{2})T(\d{2}:\d{2}:\d{2})/);
-            return iso[1] + ' ' + iso[2];
+            return iso[1] + ' @ ' + iso[2];
         };
         
 // NOTE: requires modification for correct column(s), since this app 

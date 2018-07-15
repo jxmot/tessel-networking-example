@@ -3,15 +3,37 @@
     overflow: auto;
 }
 
+table {
+    table-layout: fixed;
+    width: 75%; /* must have this set */
+    margin: 0 auto;
+    border: 1px solid black;
+}
+
 .table-cell-center {
-    text-align:center;
-    padding: .5% 1% .5% 1%;
+    padding: 2% !important;
+    text-align: center!important;
 }
 
-table, th, td {
-   border: 1px solid black;
+th.table-cell-center {
+    width: 25%;
 }
 
-td, tr {
-    vertical-align: middle !important;
+th {
+   border-bottom: 1px dashed black!important;
+   border-right: 1px dashed black!important;
 }
+
+th.border-right-none {
+   border-right: none!important;
+}
+
+td {
+   border-top: 1px dashed black!important;
+   border-right: 1px dashed black!important;
+}
+
+td.border-right-none {
+   border-right: none!important;
+}
+

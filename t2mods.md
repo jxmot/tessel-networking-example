@@ -11,7 +11,7 @@
   * [DHCP Functions](#dhcp-functions)
     + [UCI DHCP Commands](#uci-dhcp-commands)
   * [WiFi Functions](#wifi-functions)
-    + [UCI DHCP Commands](#uci-dhcp-commands-1)
+    + [UCI WiFi Commands](#uci-wifi-commands)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
@@ -367,7 +367,7 @@ See [OpenWRT - DHCP Pools](https://openwrt.org/docs/guide-user/base-system/dhcp_
 * `tessel.network.wifi.setMACBlackList()`
 * `tessel.network.wifi.disableMACList()`
 
-### WiFi DHCP Commands
+### UCI WiFi Commands
 
 *None at this time.*
 

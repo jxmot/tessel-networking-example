@@ -367,7 +367,7 @@ See [OpenWRT - DHCP Pools](https://openwrt.org/docs/guide-user/base-system/dhcp_
 * `tessel.network.wifi.setMACBlackList()`
 * `tessel.network.wifi.disableMACList()`
 
-### UCI DHCP Commands
+### WiFi DHCP Commands
 
 *None at this time.*
 

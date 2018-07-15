@@ -83,20 +83,18 @@ function servePath(req, res, wwwpath, wwwcomm) {
 
     fs.exists(pathname, (exist) => {
         if(!exist) {
-            if(pathname.includes('favicon.ico') === true) {
-                con.log('httpsrv.servePath() : favicon.ico request, responding with 204');
-                res.status(204).send('/favicon.ico not found');
-                res.end();
-            } else {
-                if(pathname.includes('404.css') === true) {
-                    serveFile(path.join(wwwcomm, '/assets/css/404.css'), res);
-                } else {
-// check wwwcomm + pathname for exist before 404
+            // check wwwcomm + url for exist before 404
+            let pubpath = path.join(wwwcomm,url.parse(req.url).pathname);
+            con.log(`httpsrv.servePath() : check ${pubpath}`)
+            fs.exists(pubpath, (exist) => {
+                if(!exist) {
                     res.statusCode = 404;
                     con.log(`httpsrv.servePath() : File ${pathname} not found!`);
                     serveFile(path.join(wwwcomm, '404.html'), res);
+                } else {
+                    serveFile(pubpath, res);
                 }
-            }
+            });
         } else {
             if (fs.statSync(pathname).isDirectory()) {
                 pathname = path.join(pathname, 'index.html');

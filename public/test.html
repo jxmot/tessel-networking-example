@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>title</title>
+</head>
+<body>
+    <h1 style="text-align:center">Access Point Demo - TEST</h1>
+    <p style="text-align:center">
+        Your IP is - <span id="ipaddr" style="font-weight:bold"></span>
+    </p>
+    <br>
+    <br>
+    <p style="text-align:center">
+        <img src="/assets/img/tessel2.png"/>
+    </p>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        function autorun()
+        {
+            // ask the server for our IP
+            $.get("/info/ip", function(data) {
+                $("#ipaddr").html(data);
+            });
+        }
+
+        if (document.addEventListener) document.addEventListener("DOMContentLoaded", autorun, false);
+        else if (document.attachEvent) document.attachEvent("onreadystatechange", autorun);
+        else window.onload = autorun;
+    </script>
+</body>
+</html>

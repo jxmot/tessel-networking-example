@@ -248,7 +248,7 @@ tessel.network.ap.on('enable', () => {
 // clean up and exit when the AP has been disabled
 tessel.network.ap.on('disable', () => {
     con.trace('ap.disable event - disabled\n');
-    // turn the LEDs OFF as a indicator of success
+    // turn the LEDs OFF
     tessel.led[2].off();
     tessel.led[3].off();
     // clear these in case this is part of soft restart
@@ -328,7 +328,6 @@ function waitForWlan() {
                 // so let's stop scanning the network interfaces...
                 clearInterval(wlanTimerID);
 
-
                 // retrieve the IP and MAC for the wired interface
                 ethip = getIPv4('eth0');
                 // retrieve the IP and MAC for the access point(wlan0) and
@@ -336,23 +335,18 @@ function waitForWlan() {
                 apip = getIPv4('wlan0');
                 apready = ((apip !== undefined) ? true : false);
                 con.trace(`waitForWlan() apready = ${apready}`);
-//event??? apready
-//handler???
-
 
                 // are the http servers enabled?
                 if(httpenable === true) {
                     // start an http server on the access point address
                     (apready === true ? http_wlan = new httpsrv(apip.ip, 80, 'www', adminAPI) : console.error(`http_wlan not started, apready = ${apready}`));
                     // start an http server on the wired interface address
-                    http_eth = new httpsrv(ethip.ip, 80, 'wwwadmin', adminAPI);
+                    (ethip !== undefined ? http_eth = new httpsrv(ethip.ip, 80, 'wwwadmin', adminAPI) : console.error(`http_eth not started`));
                 }
-
 
                 // start scanning for connected stations
                 con.log('\nstation scan started...\n');
                 stationsintrvl = setInterval(getStations, 5000);
-//^handler???
             } 
         } else wlanWaitCount += 1;
     }
@@ -385,8 +379,8 @@ function getIPv4(_iface) {
         mac: ''
     };
     // make sure it's a valid interface
-    let iface = ((_iface.toLowerCase() === 'wlan0' || _iface.toLowerCase() === 'eth0') ? _iface.toLowerCase() : 'UNKNWN');
-    if(iface !== 'UNKNWN') {
+    let iface = _iface.toLowerCase();
+    if((iface !== 'wlan0') || (iface !== 'eth0')) {
         // it's good, ask for the list of current interfaces
         let netif = os.networkInterfaces();
         // are there any?

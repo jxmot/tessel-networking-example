@@ -89,7 +89,7 @@ function servePath(req, res, wwwpath, wwwcomm) {
             fs.exists(pubpath, (exist) => {
                 if(!exist) {
                     res.statusCode = 404;
-                    con.log(`httpsrv.servePath() : File ${pathname} not found!`);
+                    con.log(`httpsrv.servePath() : File ${pubpath} not found!`);
                     serveFile(path.join(wwwcomm, '404.html'), res);
                 } else {
                     serveFile(pubpath, res);

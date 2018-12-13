@@ -1,6 +1,6 @@
 # Tessel 2 Firmware Modifications
 
-- [Tessel 2 API Review](#tessel-2-api-overview)
+- [Tessel 2 API Overview](#tessel-2-api-overview)
 - [Access Point API Modifications](#access-point-api-modifications)
 - [Design Details](#design-details)
   * [Get or Set WiFi Channel](#get-or-set-wifi-channel)
@@ -20,7 +20,7 @@
 * [Application Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/appdesign.md)
 * [Web Server Design Details](https://github.com/jxmot/tessel-networking-example/blob/master/aphttp.md)
 
-# Tessel 2 API Review
+# Tessel 2 API Overview
 
 * Resources used : 
     * [The UCI System](https://openwrt.org/docs/guide-user/base-system/uci)

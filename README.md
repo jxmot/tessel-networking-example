@@ -93,7 +93,7 @@ The procedure below uses the `scp` command which is not available in any Windows
 
 ## Update the Tessel 2 Firmware
 
-1) **_Clone_** this repository, please do not fork unless you're contributing.
+1) Make a copy this repository, download the zip-file.
 2) Open a command line window using your chosen shell in your copy of this repository.
 3) Navigate to the `tessel_mods/t2-firmware/node` folder.
 4) Type in the following command - 
